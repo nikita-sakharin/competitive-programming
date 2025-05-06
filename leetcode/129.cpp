@@ -37,11 +37,10 @@ private:
     static constexpr int nextLeaf(
         Stack<pair<const TreeNode *, int>> &lifo
     ) noexcept {
-        auto [treeNode, number] = lifo.top();
+        const auto [treeNode, number] = lifo.top();
         lifo.pop();
-        number = initLeaf(treeNode->right, lifo, number);
 
-        return number;
+        return initLeaf(treeNode->right, lifo, number);
     }
 
 public:
