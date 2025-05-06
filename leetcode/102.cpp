@@ -22,8 +22,7 @@ public:
         fifo.push(root);
 
         do {
-            auto &level{result.emplace_back()};
-            level.resize(size(fifo));
+            auto &level{result.emplace_back(size(fifo))};
             for (auto &value : level) {
                 const auto treeNode{fifo.front()};
                 fifo.pop();
