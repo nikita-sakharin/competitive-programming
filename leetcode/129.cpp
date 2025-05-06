@@ -46,12 +46,10 @@ private:
 public:
     constexpr int sumNumbers(const TreeNode * const root) const noexcept {
         Stack<pair<const TreeNode *, int>> lifo{};
-        auto number{initLeaf(root, lifo, 0)}, result{number};
+        auto result{initLeaf(root, lifo, 0)};
 
-        while (!empty(lifo)) {
-            number = nextLeaf(lifo);
-            result += number;
-        }
+        while (!empty(lifo))
+            result += nextLeaf(lifo);
 
         return result;
     }
