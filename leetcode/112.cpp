@@ -16,60 +16,45 @@ private:
 
     static constexpr int initLeaf(
         const TreeNode *treeNode,
-        Stack<const TreeNode *> &lifo
+        int sum,
+        Stack<pair<const TreeNode *, int>> &lifo
     ) noexcept {
-        auto sum{0};
-        while (treeNode) {
-            lifo.push(treeNode);
+        do {
             sum += treeNode->val;
+            if (treeNode->left && treeNode->right)
+                lifo.emplace(treeNode, sum);
             if (treeNode->left)
                 treeNode = treeNode->left;
             else
                 treeNode = treeNode->right;
-        }
+        } while (treeNode);
 
         return sum;
-    }
-
-    static constexpr bool hasRightSibling(
-        const TreeNode * const treeNode,
-        const TreeNode * const parent
-    ) noexcept {
-        return treeNode == parent->left && parent->right;
     }
 
     static constexpr int nextLeaf(
-        Stack<const TreeNode *> &lifo
+        Stack<pair<const TreeNode *, int>> &lifo
     ) noexcept {
-        auto sum{0};
-        const TreeNode *treeNode{};
-        do {
-            treeNode = lifo.top();
-            lifo.pop();
-            sum -= treeNode->val;
-        } while (!empty(lifo) && !hasRightSibling(treeNode, lifo.top()));
+        const auto [treeNode, sum] = lifo.top();
+        lifo.pop();
 
-        if (!empty(lifo))
-            sum += initLeaf(lifo.top()->right, lifo);
-
-        return sum;
+        return initLeaf(treeNode->right, sum, lifo);
     }
 
 public:
     constexpr bool hasPathSum(
         const TreeNode * const root,
-        int targetSum
+        const int targetSum
     ) const noexcept {
-        Stack<const TreeNode *> lifo{};
-        targetSum -= initLeaf(root, lifo);
+        if (!root)
+            return false;
 
-        while (!empty(lifo)) {
-            if (targetSum == 0)
-                return true;
+        Stack<pair<const TreeNode *, int>> lifo{};
+        auto sum{initLeaf(root, 0, lifo)};
 
-            targetSum -= nextLeaf(lifo);
-        }
+        while (sum != targetSum && !empty(lifo))
+            sum = nextLeaf(lifo);
 
-        return false;
+        return sum == targetSum;
     }
 };
