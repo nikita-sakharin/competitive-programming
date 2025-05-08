@@ -1,9 +1,12 @@
 class MaxStack final {
 private:
+    template<class T>
+    using Stack = stack<T, vector<T>>;
+
     using ConstIterator = list<int>::const_iterator;
 
     list<int> values{};
-    map<int, stack<ConstIterator>> index{};
+    map<int, Stack<ConstIterator>> index{};
 
 public:
     constexpr void push(const int value) noexcept {
