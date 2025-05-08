@@ -18,8 +18,8 @@ private:
 
     static constexpr int initLeaf(
         const TreeNode *treeNode,
-        Stack<pair<const TreeNode *, int>> &lifo,
-        int number
+        int number,
+        Stack<pair<const TreeNode *, int>> &lifo
     ) noexcept {
         do {
             number = number * radix + treeNode->val;
@@ -40,13 +40,13 @@ private:
         const auto [treeNode, number] = lifo.top();
         lifo.pop();
 
-        return initLeaf(treeNode->right, lifo, number);
+        return initLeaf(treeNode->right, number, lifo);
     }
 
 public:
     constexpr int sumNumbers(const TreeNode * const root) const noexcept {
         Stack<pair<const TreeNode *, int>> lifo{};
-        auto result{initLeaf(root, lifo, 0)};
+        auto result{initLeaf(root, 0, lifo)};
 
         while (!empty(lifo))
             result += nextLeaf(lifo);
