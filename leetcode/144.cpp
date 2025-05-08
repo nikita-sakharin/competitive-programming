@@ -19,17 +19,20 @@ public:
         const TreeNode * const root
     ) const noexcept {
         vector<int> result{};
+        if (!root)
+            return result;
+
         Stack<const TreeNode *> lifo{};
         lifo.push(root);
 
         do {
             const auto treeNode{lifo.top()};
             lifo.pop();
-            if (treeNode) {
-                result.push_back(treeNode->val);
+            result.push_back(treeNode->val);
+            if (treeNode->right)
                 lifo.push(treeNode->right);
+            if (treeNode->left)
                 lifo.push(treeNode->left);
-            }
         } while (!empty(lifo));
 
         return result;
