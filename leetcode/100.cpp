@@ -11,31 +11,79 @@
  */
 class Solution final {
 private:
+    template<class Container>
+    using Value = Container::value_type;
+
+    template<class Container>
+    struct Front final {
+    public:
+        constexpr const Value<Container> &operator()(
+            const Container &container
+        ) const noexcept {
+            return container.front();
+        }
+    };
+
+    template<class Container>
+    struct Top final {
+    public:
+        constexpr const Value<Container> &operator()(
+            const Container &container
+        ) const noexcept {
+            return container.top();
+        }
+    };
+
+    template<template<class> class Container, template<class> class Accessor>
+    static constexpr bool isSameTree(
+        const TreeNode * const first,
+        const TreeNode * const second
+    ) noexcept {
+        using Pair = pair<const TreeNode *, const TreeNode *>;
+
+        if (!first && !second)
+            return true;
+
+        Container<Pair> container{};
+        const Accessor<Container<Pair>> accessor{};
+        container.emplace(first, second);
+
+        do {
+            const auto [left, right]{accessor(container)};
+            container.pop();
+            if (bool(left) != bool(right) || left->val != right->val)
+                return false;
+            if (left->left || right->left)
+                container.emplace(left->left, right->left);
+            if (left->right || right->right)
+                container.emplace(left->right, right->right);
+        } while (!empty(container));
+
+        return true;
+    }
+
+    static constexpr bool isSameTreeBreadthFirstSearch(
+        const TreeNode * const first,
+        const TreeNode * const second
+    ) noexcept {
+        return isSameTree<queue, Front>(first, second);
+    }
+
     template<class T>
     using Stack = stack<T, vector<T>>;
+
+    static constexpr bool isSameTreeDepthFirstSearch(
+        const TreeNode * const first,
+        const TreeNode * const second
+    ) noexcept {
+        return isSameTree<Stack, Top>(first, second);
+    }
 
 public:
     constexpr bool isSameTree(
         const TreeNode * const first,
         const TreeNode * const second
     ) const noexcept {
-        if (!first && !second)
-            return true;
-
-        Stack<pair<const TreeNode *, const TreeNode *>> lifo{};
-        lifo.emplace(first, second);
-
-        do {
-            const auto [left, right]{lifo.top()};
-            lifo.pop();
-            if (bool(left) != bool(right) || left->val != right->val)
-                return false;
-            if (left->left || right->left)
-                lifo.emplace(left->left, right->left);
-            if (left->right || right->right)
-                lifo.emplace(left->right, right->right);
-        } while (!empty(lifo));
-
-        return true;
+        return isSameTreeDepthFirstSearch(first, second);
     }
 };
