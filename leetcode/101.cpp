@@ -11,28 +11,71 @@
  */
 class Solution final {
 private:
-    template<class T>
-    using Stack = stack<T, vector<T>>;
+    template<class Container>
+    using Value = Container::value_type;
 
-public:
-    constexpr bool isSymmetric(const TreeNode * const root) const noexcept {
+    template<class Container>
+    struct Front final {
+    public:
+        constexpr const Value<Container> &operator()(
+            const Container &container
+        ) const noexcept {
+            return container.front();
+        }
+    };
+
+    template<class Container>
+    struct Top final {
+    public:
+        constexpr const Value<Container> &operator()(
+            const Container &container
+        ) const noexcept {
+            return container.top();
+        }
+    };
+
+    template<template<class> class Container, template<class> class Accessor>
+    static constexpr bool isSymmetric(const TreeNode * const root) noexcept {
+        using Pair = pair<const TreeNode *, const TreeNode *>;
+
         if (!root->left && !root->right)
             return true;
 
-        Stack<pair<const TreeNode *, const TreeNode *>> lifo{};
-        lifo.emplace(root->left, root->right);
+        Container<Pair> container{};
+        const Accessor<Container<Pair>> accessor{};
+        container.emplace(root->left, root->right);
 
         do {
-            const auto [left, right]{lifo.top()};
-            lifo.pop();
+            const auto [left, right]{accessor(container)};
+            container.pop();
             if (bool(left) != bool(right) || left->val != right->val)
                 return false;
             if (left->left || right->right)
-                lifo.emplace(left->left, right->right);
+                container.emplace(left->left, right->right);
             if (left->right || right->left)
-                lifo.emplace(left->right, right->left);
-        } while (!empty(lifo));
+                container.emplace(left->right, right->left);
+        } while (!empty(container));
 
         return true;
+    }
+
+    template<class T>
+    using Stack = stack<T, vector<T>>;
+
+    static constexpr bool isSymmetricBreadthFirstSearch(
+        const TreeNode * const root
+    ) noexcept {
+        return isSymmetric<queue, Front>(root);
+    }
+
+    static constexpr bool isSymmetricDepthFirstSearch(
+        const TreeNode * const root
+    ) noexcept {
+        return isSymmetric<Stack, Top>(root);
+    }
+
+public:
+    constexpr bool isSymmetric(const TreeNode * const root) const noexcept {
+        return isSymmetricDepthFirstSearch(root);
     }
 };
