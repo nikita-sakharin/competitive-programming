@@ -25,13 +25,13 @@ private:
         const TreeNode *treeNode,
         Stack<const TreeNode *> &lifo
     ) noexcept {
-        while (treeNode) {
+        do {
             lifo.push(treeNode);
             if (treeNode->left)
                 treeNode = treeNode->left;
             else
                 treeNode = treeNode->right;
-        }
+        } while (treeNode);
     }
 
     static constexpr const TreeNode *postorderNext(
@@ -41,6 +41,7 @@ private:
         lifo.pop();
         if (!empty(lifo) && hasRightSibling(treeNode, lifo.top()))
             postorderInit(lifo.top()->right, lifo);
+
         return treeNode;
     }
 
@@ -49,13 +50,16 @@ public:
         const TreeNode * const root
     ) const noexcept {
         vector<int> result{};
+        if (!root)
+            return result;
+
         Stack<const TreeNode *> lifo{};
         postorderInit(root, lifo);
 
-        while (!empty(lifo)) {
+        do {
             const auto treeNode{postorderNext(lifo)};
             result.push_back(treeNode->val);
-        };
+        } while (!empty(lifo));
 
         return result;
     }
