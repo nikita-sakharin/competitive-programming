@@ -71,10 +71,10 @@ private:
         return nthElement(first1, size1, first2, size2, n);
     }
 
-    template<class Iter, class Container = deque<Value<Iter>>>
+    template<class Iter, template<class> class Container = deque>
     class DefaultMerger final {
     private:
-        queue<Value<Iter>, Container> buffer{};
+        queue<Value<Iter>, Container<Value<Iter>>> fifo{};
 
         constexpr void operator()(
             Iter first,
@@ -89,17 +89,17 @@ private:
             auto leftNonEmpty{true};
             do {
                 if (leftNonEmpty)
-                    buffer.push(move(*first));
-                if (empty(buffer) || (second != last && *second < buffer.front())) {
+                    fifo.push(move(*first));
+                if (empty(fifo) || (second != last && *second < fifo.front())) {
                     *first = move(*second);
                     ++second;
                 } else {
-                    *first = move(buffer.front());
-                    buffer.pop();
+                    *first = move(fifo.front());
+                    fifo.pop();
                 }
                 ++first;
                 leftNonEmpty = leftNonEmpty && first != middle;
-            } while (leftNonEmpty || !empty(buffer));
+            } while (leftNonEmpty || !empty(fifo));
         }
 
         constexpr void operator()(
@@ -114,16 +114,16 @@ private:
             auto second{middle};
             do {
                 if (first < middle)
-                    buffer.push(move(*first));
-                if (empty(buffer) || (second != last && *second < buffer.front())) {
+                    fifo.push(move(*first));
+                if (empty(fifo) || (second != last && *second < fifo.front())) {
                     *first = move(*second);
                     ++second;
                 } else {
-                    *first = move(buffer.front());
-                    buffer.pop();
+                    *first = move(fifo.front());
+                    fifo.pop();
                 }
                 ++first;
-            } while (first < middle || !empty(buffer));
+            } while (first < middle || !empty(fifo));
         }
 
     public:
@@ -136,10 +136,12 @@ private:
         }
     };
 
-    template<class Iter, class Container = vector<tuple<Iter, Iter, Iter>>>
+    template<class Iter, template<class> class Container = vector>
     class RotateMerger final {
     private:
-        stack<tuple<Iter, Iter, Iter>, Container> lifo{};
+        using Task = tuple<Iter, Iter, Iter>;
+
+        stack<Task, Container<Task>> lifo{};
 
     public:
         constexpr void operator()(
@@ -173,10 +175,12 @@ private:
         }
     };
 
-    template<class Iter, class Container = vector<tuple<Iter, Iter, Iter>>>
+    template<class Iter, template<class> class Container = vector>
     class RotatePartitionMerger final {
     private:
-        stack<tuple<Iter, Iter, Iter>, Container> lifo{};
+        using Task = tuple<Iter, Iter, Iter>;
+
+        stack<Task, Container<Task>> lifo{};
 
     public:
         constexpr void operator()(
