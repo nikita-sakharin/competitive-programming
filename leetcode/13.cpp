@@ -1,7 +1,7 @@
 class Solution final {
 private:
-    static constexpr int letterToInt(const char ch) noexcept {
-        switch (ch) {
+    static constexpr int numeralValue(const char numeral) noexcept {
+        switch (numeral) {
             case 'I':
                 return 1;
             case 'V':
@@ -17,21 +17,22 @@ private:
             case 'M':
                 return 1000;
             default:
-                terminate();
+                unreachable();
         }
     }
 
 public:
     constexpr int romanToInt(const string &str) const noexcept {
-        auto result{0}, prevInt{0};
+        auto result{0}, prevValue{0};
         for (auto i{ssize(str) - 1}; i >= 0; --i) {
-            const auto toInt{letterToInt(str[size_t(i)])};
-            if (toInt < prevInt)
-                result -= toInt;
+            const auto value{numeralValue(str[size_t(i)])};
+            if (value < prevValue)
+                result -= value;
             else
-                result += toInt;
-            prevInt = toInt;
+                result += value;
+            prevValue = value;
         }
+
         return result;
     }
 };
