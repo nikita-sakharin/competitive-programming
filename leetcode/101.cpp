@@ -59,7 +59,7 @@ private:
         return true;
     }
 
-    static constexpr bool isSymmetricBreadthFirstSearch(
+    static constexpr bool isSymmetricBFS(
         const TreeNode * const root
     ) noexcept {
         return isSymmetric<queue, Front>(root);
@@ -68,7 +68,7 @@ private:
     template<class T>
     using Stack = stack<T, vector<T>>;
 
-    static constexpr bool isSymmetricDepthFirstSearch(
+    static constexpr bool isSymmetricDFS(
         const TreeNode * const root
     ) noexcept {
         return isSymmetric<Stack, Top>(root);
@@ -76,6 +76,6 @@ private:
 
 public:
     constexpr bool isSymmetric(const TreeNode * const root) const noexcept {
-        return isSymmetricDepthFirstSearch(root);
+        return isSymmetricDFS(root);
     }
 };

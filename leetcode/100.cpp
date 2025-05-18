@@ -62,7 +62,7 @@ private:
         return true;
     }
 
-    static constexpr bool isSameTreeBreadthFirstSearch(
+    static constexpr bool isSameTreeBFS(
         const TreeNode * const first,
         const TreeNode * const second
     ) noexcept {
@@ -72,7 +72,7 @@ private:
     template<class T>
     using Stack = stack<T, vector<T>>;
 
-    static constexpr bool isSameTreeDepthFirstSearch(
+    static constexpr bool isSameTreeDFS(
         const TreeNode * const first,
         const TreeNode * const second
     ) noexcept {
@@ -84,6 +84,6 @@ public:
         const TreeNode * const first,
         const TreeNode * const second
     ) const noexcept {
-        return isSameTreeDepthFirstSearch(first, second);
+        return isSameTreeDFS(first, second);
     }
 };
