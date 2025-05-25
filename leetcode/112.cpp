@@ -14,15 +14,17 @@ private:
     template<class T>
     using Stack = stack<T, vector<T>>;
 
+    using Task = pair<const TreeNode *, int>;
+
     static constexpr int initLeaf(
         const TreeNode *treeNode,
         int sum,
-        Stack<pair<const TreeNode *, int>> &lifo
+        Stack<Task> &lifo
     ) noexcept {
         do {
             sum += treeNode->val;
             if (treeNode->left && treeNode->right)
-                lifo.emplace(treeNode, sum);
+                lifo.emplace(treeNode->right, sum);
             if (treeNode->left)
                 treeNode = treeNode->left;
             else
@@ -32,13 +34,11 @@ private:
         return sum;
     }
 
-    static constexpr int nextLeaf(
-        Stack<pair<const TreeNode *, int>> &lifo
-    ) noexcept {
+    static constexpr int nextLeaf(Stack<Task> &lifo) noexcept {
         const auto [treeNode, sum] = lifo.top();
         lifo.pop();
 
-        return initLeaf(treeNode->right, sum, lifo);
+        return initLeaf(treeNode, sum, lifo);
     }
 
 public:
@@ -49,7 +49,7 @@ public:
         if (!root)
             return false;
 
-        Stack<pair<const TreeNode *, int>> lifo{};
+        Stack<Task> lifo{};
         auto sum{initLeaf(root, 0, lifo)};
 
         while (sum != targetSum && !empty(lifo))
