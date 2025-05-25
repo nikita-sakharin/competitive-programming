@@ -14,17 +14,19 @@ private:
     template<class T>
     using Stack = stack<T, vector<T>>;
 
+    using Task = pair<const TreeNode *, int>;
+
     static constexpr auto radix{10};
 
     static constexpr int initLeaf(
         const TreeNode *treeNode,
         int number,
-        Stack<pair<const TreeNode *, int>> &lifo
+        Stack<Task> &lifo
     ) noexcept {
         do {
             number = number * radix + treeNode->val;
             if (treeNode->left && treeNode->right)
-                lifo.emplace(treeNode, number);
+                lifo.emplace(treeNode->right, number);
             if (treeNode->left)
                 treeNode = treeNode->left;
             else
@@ -34,18 +36,16 @@ private:
         return number;
     }
 
-    static constexpr int nextLeaf(
-        Stack<pair<const TreeNode *, int>> &lifo
-    ) noexcept {
+    static constexpr int nextLeaf(Stack<Task> &lifo) noexcept {
         const auto [treeNode, number] = lifo.top();
         lifo.pop();
 
-        return initLeaf(treeNode->right, number, lifo);
+        return initLeaf(treeNode, number, lifo);
     }
 
 public:
     constexpr int sumNumbers(const TreeNode * const root) const noexcept {
-        Stack<pair<const TreeNode *, int>> lifo{};
+        Stack<Task> lifo{};
         auto result{initLeaf(root, 0, lifo)};
 
         while (!empty(lifo))
