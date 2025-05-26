@@ -23,7 +23,7 @@ public:
         unordered_map<const Node *, Node *> toNew{{listNode, result}};
 
         auto newListNode{result};
-        while (listNode) {
+        do {
             const auto next{listNode->next}, random{listNode->random};
             if (next) {
                 auto &newNext{toNew[next]};
@@ -40,7 +40,7 @@ public:
 
             listNode = next;
             newListNode = newListNode->next;
-        }
+        } while (listNode);
 
         return result;
     }
