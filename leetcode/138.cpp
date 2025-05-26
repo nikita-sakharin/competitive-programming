@@ -25,14 +25,14 @@ public:
         auto newListNode{result};
         while (listNode) {
             const auto next{listNode->next}, random{listNode->random};
-            auto &newNext{toNew[next]}, &newRandom{toNew[random]};
-
             if (next) {
+                auto &newNext{toNew[next]};
                 if (!newNext)
                     newNext = new Node{next->val};
                 newListNode->next = newNext;
             }
             if (random) {
+                auto &newRandom{toNew[random]};
                 if (!newRandom)
                     newRandom = new Node{random->val};
                 newListNode->random = newRandom;
