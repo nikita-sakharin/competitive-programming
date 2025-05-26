@@ -23,27 +23,27 @@ private:
     template<class Iter>
     static constexpr void pascalTriangleRow(
         Iter first,
-        const size_t rowIndex
+        const size_t index
     ) noexcept {
         using Value = iterator_traits<Iter>::value_type;
 
         Value binomial{1};
         *first++ = binomial;
-        for (auto k{0UZ}, exp2{0UZ}, exp5{0UZ}; k < rowIndex; ++first, ++k) {
-            auto multiplier{rowIndex - k}, divider{k + 1};
+        for (auto k{0UZ}, exp2{0UZ}, exp5{0UZ}; k < index; ++first, ++k) {
+            auto multiplier{index - k}, divider{k + 1};
             auto diff{0U};
 
             const auto multiplierTwos{uint(countr_zero(multiplier))};
             exp2 += multiplierTwos;
             multiplier >>= multiplierTwos;
-            tie(multiplier, diff) = factorize(multiplier, size_t{5});
+            tie(multiplier, diff) = factorize(multiplier, 5UZ);
             exp5 += diff;
             binomial = binomial * Value(multiplier) % Value{mod};
 
             const auto dividerTwos{uint(countr_zero(divider))};
             exp2 -= dividerTwos;
             divider >>= dividerTwos;
-            tie(divider, diff) = factorize(divider, size_t{5});
+            tie(divider, diff) = factorize(divider, 5UZ);
             exp5 -= diff;
             binomial = binomial * mod10Inverse[divider % mod] % Value{mod};
 
