@@ -7,6 +7,9 @@ private:
     using Value = iterator_traits<Iter>::value_type;
 
     template<class Iter>
+    using Task = tuple<Iter, Iter, Iter>;
+
+    template<class Iter>
     static constexpr auto
         category{typename iterator_traits<Iter>::iterator_category()};
 
@@ -139,9 +142,7 @@ private:
     template<class Iter, template<class> class Container = vector>
     class RotateMerger final {
     private:
-        using Task = tuple<Iter, Iter, Iter>;
-
-        stack<Task, Container<Task>> lifo{};
+        stack<Task<Iter>, Container<Task<Iter>>> lifo{};
 
     public:
         constexpr void operator()(
@@ -178,9 +179,7 @@ private:
     template<class Iter, template<class> class Container = vector>
     class RotatePartitionMerger final {
     private:
-        using Task = tuple<Iter, Iter, Iter>;
-
-        stack<Task, Container<Task>> lifo{};
+        stack<Task<Iter>, Container<Task<Iter>>> lifo{};
 
     public:
         constexpr void operator()(
@@ -270,7 +269,7 @@ private:
             if (const auto sibling{next(child)};
                 sibling != last && *child < *sibling
             )
-                ++child;
+                child = sibling;
             if (*element >= *child)
                 break;
             iter_swap(element, child);
@@ -281,7 +280,8 @@ private:
     template<class Iter>
     static constexpr void siftUp(const Iter first, Iter element) noexcept {
         while (element != first) {
-            const auto parent{prev(element, (distance(first, element) >> 1) + 1)};
+            const auto
+                parent{prev(element, (distance(first, element) >> 1) + 1)};
             if (*parent >= *element)
                 break;
             iter_swap(parent, element);
