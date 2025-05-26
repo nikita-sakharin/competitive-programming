@@ -24,13 +24,14 @@ private:
         Stack<Task> &lifo
     ) noexcept {
         do {
+            const auto left{treeNode->left}, right{treeNode->right};
             number = number * radix + treeNode->val;
-            if (treeNode->left && treeNode->right)
-                lifo.emplace(treeNode->right, number);
-            if (treeNode->left)
-                treeNode = treeNode->left;
+            if (left && right)
+                lifo.emplace(right, number);
+            if (left)
+                treeNode = left;
             else
-                treeNode = treeNode->right;
+                treeNode = right;
         } while (treeNode);
 
         return number;

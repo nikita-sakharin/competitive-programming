@@ -22,13 +22,14 @@ private:
         Stack<Task> &lifo
     ) noexcept {
         do {
+            const auto left{treeNode->left}, right{treeNode->right};
             sum += treeNode->val;
-            if (treeNode->left && treeNode->right)
-                lifo.emplace(treeNode->right, sum);
-            if (treeNode->left)
-                treeNode = treeNode->left;
+            if (left && right)
+                lifo.emplace(right, sum);
+            if (left)
+                treeNode = left;
             else
-                treeNode = treeNode->right;
+                treeNode = right;
         } while (treeNode);
 
         return sum;
