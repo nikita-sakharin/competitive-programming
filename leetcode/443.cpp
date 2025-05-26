@@ -14,9 +14,11 @@ public:
             }
             ++cnt;
         }
+
         if (cnt > 1)
             ptr = to_chars(ptr, ptrEnd, cnt).ptr;
         chars.resize(size_t(ptr - data(chars)));
+
         return int(size(chars));
     }
 };
