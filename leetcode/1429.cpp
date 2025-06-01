@@ -3,7 +3,7 @@ private:
     using ConstIterator = list<int>::const_iterator;
 
     list<int> unique{};
-    unordered_map<int, ConstIterator> index{};
+    unordered_map<int, ConstIterator> dict{};
 
 public:
     constexpr FirstUnique(const vector<int> &nums) noexcept {
@@ -17,7 +17,7 @@ public:
 
     constexpr void add(const int value) noexcept {
         const auto uniqueLast{cend(unique)};
-        const auto [iter, inserted](index.try_emplace(value, uniqueLast));
+        const auto [iter, inserted](dict.try_emplace(value, uniqueLast));
         if (inserted) {
             unique.push_back(value);
             --iter->second;
