@@ -20,19 +20,19 @@ public:
             return nullptr;
 
         const auto result{new Node{listNode->val}};
-        unordered_map<const Node *, Node *> dictionary{{listNode, result}};
+        unordered_map<const Node *, Node *> dict{{listNode, result}};
 
         auto newListNode{result};
         do {
             const auto next{listNode->next}, random{listNode->random};
             if (next) {
-                auto &newNext{dictionary[next]};
+                auto &newNext{dict[next]};
                 if (!newNext)
                     newNext = new Node{next->val};
                 newListNode->next = newNext;
             }
             if (random) {
-                auto &newRandom{dictionary[random]};
+                auto &newRandom{dict[random]};
                 if (!newRandom)
                     newRandom = new Node{random->val};
                 newListNode->random = newRandom;
