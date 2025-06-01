@@ -6,7 +6,7 @@ private:
         int value{0};
     };
 
-    unordered_map<int, Mapped> index{};
+    unordered_map<int, Mapped> dict{};
     pair<const int, Mapped> *head{}, *tail{};
     const size_t capacity{0};
 
@@ -26,27 +26,27 @@ public:
     inline LRUCache(const int capacity) noexcept : capacity(capacity) {}
 
     inline int get(const int key) noexcept {
-        const auto iter{index.find(key)};
-        if (iter == cend(index))
+        const auto iter{dict.find(key)};
+        if (iter == cend(dict))
             return -1;
         return get(*iter);
     }
 
     inline void put(const int key, const int value) noexcept {
-        const auto iter{index.find(key)};
-        if (iter != cend(index)) {
+        const auto iter{dict.find(key)};
+        if (iter != cend(dict)) {
             get(*iter) = value;
             return;
         }
 
-        if (size(index) >= capacity) {
-            const auto iter{index.find(head->first)};
-            auto node{index.extract(iter)};
+        if (size(dict) >= capacity) {
+            const auto iter{dict.find(head->first)};
+            auto node{dict.extract(iter)};
             node.key() = key;
-            index.insert(move(node));
+            dict.insert(move(node));
             get(*iter) = value;
         } else {
-            auto &element{*index.emplace(key, Mapped{tail, nullptr, value}).first};
+            auto &element{*dict.emplace(key, Mapped{tail, nullptr, value}).first};
             tail = (tail ? tail->second.next : head) = &element;
         }
     }
