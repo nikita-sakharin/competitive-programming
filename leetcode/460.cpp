@@ -13,7 +13,7 @@ private:
     using UnorderedMapIterator = unordered_map<uint, Bucket>::iterator;
 
     unordered_map<uint, Bucket> frequencies{};
-    unordered_map<int, BucketIterator> index{};
+    unordered_map<int, BucketIterator> dict{};
     const size_t capacity{0};
     uint minFrequency{0};
 
@@ -51,26 +51,26 @@ public:
     constexpr LFUCache(const int capacity) noexcept : capacity(capacity) {}
 
     constexpr int get(const int key) noexcept {
-        const auto iter{index.find(key)};
-        if (iter == cend(index))
+        const auto iter{dict.find(key)};
+        if (iter == cend(dict))
             return -1;
 
         return get(iter->second);
     }
 
     constexpr void put(const int key, const int value) noexcept {
-        const auto iter{index.find(key)};
-        if (iter != cend(index)) {
+        const auto iter{dict.find(key)};
+        if (iter != cend(dict)) {
             get(iter->second) = value;
             return;
         }
 
-        if (size(index) >= capacity) {
+        if (size(dict) >= capacity) {
             const auto iter{frequencies.find(minFrequency)};
             auto &elements{iter->second}, &newElements{bucket(iter)};
-            auto node{index.extract(elements.front().key)};
+            auto node{dict.extract(elements.front().key)};
             node.key() = key;
-            index.insert(move(node));
+            dict.insert(move(node));
             newElements.splice(cend(newElements), elements, cbegin(elements));
             newElements.back() = {key, value, 1};
             if (empty(elements))
@@ -78,7 +78,7 @@ public:
         } else {
             auto &elements{frequencies[1]};
             elements.emplace_back(key, value, 1);
-            index.emplace(key, --end(elements));
+            dict.emplace(key, --end(elements));
         }
         minFrequency = 1;
     }
