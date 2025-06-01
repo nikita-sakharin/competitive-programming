@@ -9,10 +9,10 @@ private:
         using ConstIterator = list<Iter>::const_iterator;
 
         list<Iter> unique{};
-        unordered_map<Value, ConstIterator> index{};
+        unordered_map<Value, ConstIterator> dict{};
         const auto uniqueLast{cend(unique)};
         for (; first != last; ++first) {
-            const auto [iter, inserted](index.try_emplace(*first, uniqueLast));
+            const auto [iter, inserted](dict.try_emplace(*first, uniqueLast));
             if (inserted) {
                 unique.push_back(first);
                 --iter->second;
