@@ -3,8 +3,8 @@ private:
     static inline const locale &classic{locale::classic()};
 
 public:
-    constexpr bool isPalindrome(const string &s) const noexcept {
-        auto i{cbegin(s)}, j{--cend(s)};
+    constexpr bool isPalindrome(const string &str) const noexcept {
+        auto i{cbegin(str)}, j{--cend(str)};
         while (i < j) {
             const auto left{*i}, right{*j};
             if (!isalnum(left, classic))
@@ -17,6 +17,7 @@ public:
             } else
                 return false;
         }
+
         return true;
     }
 };
