@@ -8,8 +8,10 @@ public:
             for (const auto &str : strs)
                 if (result >= size(str) || strs.front()[result] != str[result])
                     return strs.front().substr(0, result);
+
             ++result;
         }
+
         return ""s;
     }
 };
