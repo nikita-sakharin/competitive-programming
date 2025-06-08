@@ -1,24 +1,25 @@
 class Solution final {
 private:
-    template<class InIter, class OutIter>
+    template<class InIter, class OutIter, class Pred>
     static constexpr void zFunction(
         const InIter first,
         const InIter last,
-        const OutIter outFirst
+        const OutIter outFirst,
+        Pred &&whilePred
     ) noexcept {
         using Difference = iterator_traits<InIter>::difference_type;
 
         const auto length{distance(first, last)};
-        *outFirst = length;
-
         for (Difference i{1}, left{0}, right{0}; i < length; ++i) {
             Difference z{0};
             if (i < right)
-                z = min(right - i, outFirst[i - left]);
+                z = min(right - i, outFirst[i - left - 1]);
 
             while (i + z < length && first[z] == first[i + z])
                 ++z;
-            outFirst[i] = z;
+            outFirst[i - 1] = z;
+            if (z > 0 && !whilePred(next(first, i), next(first, i + z)))
+                break;
 
             if (i + z > right) {
                 left = i;
@@ -40,13 +41,23 @@ public:
         copy(cbegin(needle), cend(needle), iter);
         str.push_back('\0');
         copy(cbegin(haystack), cend(haystack), iter);
-        vector<ptrdiff_t> z(strSize);
-        zFunction(cbegin(str), cend(str), begin(z));
+        vector<ptrdiff_t> z(strSize - 1);
+        ptrdiff_t result{-1};
 
-        for (auto i{needleSize + 1}; i < strSize; ++i)
-            if (z[i] >= needleSize)
-                return int(i - needleSize - 1);
+        zFunction(cbegin(str), cend(str), begin(z),
+            [needleSize, haystackFirst{cbegin(str) + needleSize + 1}, &result](
+                const auto first,
+                const auto last
+            ) constexpr noexcept -> bool {
+                if (distance(first, last) >= ptrdiff_t(needleSize)) {
+                    result = distance(haystackFirst, first);
+                    return true;
+                }
 
-        return -1;
+                return false;
+            }
+        );
+
+        return int(result);
     }
 };
