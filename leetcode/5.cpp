@@ -10,14 +10,15 @@ private:
 
         if (first == last)
             return;
+
         const auto size{distance(first, last)};
         vector<Difference> buffer(size);
         for (const auto isOdd : {false, true}) {
             for (Difference i{!isOdd}, left{0}, right{0}; i < size; ++i) {
                 const auto bound{min(i + isOdd, size - i)};
-                auto k{i >= right
-                    ? isOdd
-                    : min(buffer[left + (right - i - 1)], right - i)
+                auto k{i < right
+                    ? min(buffer[left + (right - i - 1)], right - i)
+                    : isOdd
                 };
                 while (k < bound && first[i - !isOdd - k] == first[i + k])
                     ++k;
@@ -35,7 +36,7 @@ private:
 public:
     constexpr string longestPalindrome(const string &str) const noexcept {
         string_view result{};
-        const auto func{
+        findPalindromes(cbegin(str), cend(str),
             [&result](
                 const auto first,
                 const auto last
@@ -43,8 +44,7 @@ public:
                 if (distance(first, last) > ssize(result))
                     result = string_view(first, last);
             }
-        };
-        findPalindromes(cbegin(str), cend(str), func);
+        );
 
         return string(result);
     }
