@@ -10,6 +10,7 @@ public:
             result = *max_element(cbegin(left), cend(left));
         if (!empty(right))
             result = max(result, n - *min_element(cbegin(right), cend(right)));
+
         return result;
     }
 };
