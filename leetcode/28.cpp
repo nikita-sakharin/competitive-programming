@@ -5,22 +5,18 @@ private:
         const InIter first,
         const InIter last,
         const OutIter outFirst,
-        Pred &&whilePred
+        Pred &&pred
     ) noexcept {
         using Difference = iterator_traits<InIter>::difference_type;
 
         const auto length{distance(first, last)};
         for (Difference i{1}, left{0}, right{0}; i < length; ++i) {
-            Difference z{0};
-            if (i < right)
-                z = min(right - i, outFirst[i - left - 1]);
-
+            Difference z{clamp(right - i, 0Z, outFirst[i - left - 1])};
             while (i + z < length && first[z] == first[i + z])
                 ++z;
             outFirst[i - 1] = z;
-            if (z > 0 && !whilePred(next(first, i), next(first, i + z)))
+            if (z > 0 && pred(next(first, i), next(first, i + z)))
                 break;
-
             if (i + z > right) {
                 left = i;
                 right = i + z;
