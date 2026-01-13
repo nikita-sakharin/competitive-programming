@@ -13,19 +13,18 @@ public:
         while (match && match->next) {
             slow = slow->next;
             match = match->next->next;
-            if (slow == match)
-                break;
+
+            if (slow == match) {
+                slow = head;
+                while (slow != match) {
+                    slow = slow->next;
+                    match = match->next;
+                }
+
+                return match;
+            }
         }
 
-        if (!match || !match->next)
-            return nullptr;
-
-        slow = head;
-        while (slow != match) {
-            slow = slow->next;
-            match = match->next;
-        }
-
-        return match;
+        return nullptr;
     }
 };
