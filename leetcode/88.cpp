@@ -1,17 +1,19 @@
 class Solution final {
 public:
     constexpr void merge(
-        vector<int> &values1, ptrdiff_t size1,
-        const vector<int> &values2, ptrdiff_t size2
+        vector<int> &values1, ptrdiff_t length1,
+        const vector<int> &values2, ptrdiff_t length2
     ) const noexcept {
-        --size1, --size2;
-        while (size1 >= 0 || size2 >= 0)
-            if (size1 < 0 || (size2 >= 0 && values1[size1] < values2[size2])) {
-                values1[size1 + size2 + 1] = values2[size2];
-                --size2;
+        --length1, --length2;
+        while (length1 >= 0 || length2 >= 0)
+            if (length1 < 0
+                || (length2 >= 0 && values1[length1] < values2[length2])
+            ) {
+                values1[length1 + length2 + 1] = values2[length2];
+                --length2;
             } else {
-                values1[size1 + size2 + 1] = values1[size1];
-                --size1;
+                values1[length1 + length2 + 1] = values1[length1];
+                --length1;
             }
     }
 };
