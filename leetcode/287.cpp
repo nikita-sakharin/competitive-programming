@@ -9,11 +9,11 @@ private:
     template<class T, class Pred>
     static constexpr T binarySearch(T a, T b, Pred &&pred) noexcept {
         while (a != b) {
-            const T middle{midpoint(a, b)};
+            const auto middle{midpoint(a, b)};
             if (pred(middle))
                 b = middle;
             else
-                a = middle + 1;
+                a = T(middle + T{1});
         }
 
         return a;
