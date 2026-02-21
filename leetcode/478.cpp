@@ -27,8 +27,7 @@ public:
         const dbl xCenter,
         const dbl yCenter
     ) noexcept : xCenter{xCenter}, yCenter{yCenter},
-        rDist{radiusDistribution(radius)} {
-    }
+        rDist{radiusDistribution(radius)} {}
 
     inline vector<dbl> randPoint() noexcept {
         return toCircle(rDist(eng), phiDist(eng));
