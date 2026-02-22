@@ -11,38 +11,70 @@
  */
 class Solution final {
 private:
-    enum class Operation : int {
-        AND = 3,
-        OR = 2
-    };
-
     template<class T>
     using Stack = stack<T, vector<T>>;
 
-    static constexpr void process(const int value, Stack<bool> &eval) noexcept {
-        using enum Operation;
+    enum class BinaryOperator : int {
+        AND = 0,
+        OR = 1
+    };
 
-        if (const bool casted(value); value == casted) {
-            eval.push(casted);
-            return;
+    enum class UnaryOperator : int {
+        NOT = 0
+    };
+
+    template<template<class> class Container = vector>
+    class Visitor final {
+    private:
+        stack<bool, Container<bool>> operands{};
+
+    public:
+        constexpr void operator()(const BinaryOperator value) noexcept {
+            using enum BinaryOperator;
+
+            const auto second{operands.top()};
+            operands.pop();
+            const auto first{operands.top()};
+            operands.pop();
+
+            switch (value) {
+                case AND:
+                    operands.push(first && second);
+                    break;
+
+                case OR:
+                    operands.push(first || second);
+                    break;
+
+                default:
+                    unreachable();
+            }
         }
 
-        const auto right{eval.top()};
-        eval.pop();
-        const auto left{eval.top()};
-        eval.pop();
+        constexpr void operator()(const UnaryOperator value) noexcept {
+            using enum UnaryOperator;
 
-        switch (Operation{value}) {
-            case AND:
-                eval.push(left && right);
-                break;
-            case OR:
-                eval.push(left || right);
-                break;
-            default:
-                unreachable();
+            const auto first{operands.top()};
+            operands.pop();
+
+            switch (value) {
+                case NOT:
+                    operands.push(!first);
+                    break;
+
+                default:
+                    unreachable();
+            }
         }
-    }
+
+        constexpr void operator()(const bool value) noexcept {
+            operands.push(value);
+        }
+
+        constexpr bool get() const noexcept {
+            return operands.top();
+        }
+    };
 
     static constexpr bool hasRightSibling(
         const TreeNode * const treeNode,
@@ -75,18 +107,29 @@ private:
         return treeNode;
     }
 
+    static constexpr variant<bool, UnaryOperator, BinaryOperator> toVariant(
+        const int value
+    ) noexcept {
+        using enum BinaryOperator;
+
+        if (const bool casted(value); value == casted)
+            return casted;
+
+        return value == 3 ? AND : OR;
+    }
+
 public:
     constexpr bool evaluateTree(const TreeNode * const root) const noexcept {
         Stack<const TreeNode *> lifo{};
-        Stack<bool> eval{};
         postorderInit(root, lifo);
 
+        Visitor visitor{};
         do {
             const auto treeNode{postorderNext(lifo)};
             const auto value{treeNode->val};
-            process(value, eval);
+            visit(visitor, toVariant(value));
         } while (!empty(lifo));
 
-        return eval.top();
+        return visitor.get();
     }
 };
