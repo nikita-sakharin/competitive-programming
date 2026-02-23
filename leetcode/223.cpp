@@ -10,8 +10,8 @@ private:
     using Rect = array<Point<T>, 2>;
 
     enum Coordinate : size_t {
-        X,
-        Y
+        X = 0,
+        Y = 1
     };
 
     template<class T>
