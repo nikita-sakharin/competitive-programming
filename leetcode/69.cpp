@@ -7,7 +7,8 @@ private:
         if (n <= T{1})
             return n;
 
-        T iCurrent{0}, iNext{T(T{1} << ((bit_width(T(n - 1)) + 1) >> 1))};
+        const auto exponent{(bit_width(T(n - 1)) + 1) >> 1};
+        T iCurrent{0}, iNext{T(T{1} << exponent)};
         do {
             iCurrent = iNext;
             iNext = T((iCurrent + n / iCurrent) >> 1);
