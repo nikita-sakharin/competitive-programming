@@ -2,24 +2,28 @@ class Solution final {
 private:
     template<class InIter, class OutIter, class Pred>
     static constexpr void zFunction(
-        const InIter first,
-        const InIter last,
+        const InIter inFirst,
+        const InIter inLast,
         const OutIter outFirst,
         Pred &&pred
     ) noexcept {
         using Difference = iterator_traits<InIter>::difference_type;
 
-        const auto length{distance(first, last)};
+        const auto length{distance(inFirst, inLast)};
         for (Difference i{1}, left{0}, right{0}; i < length; ++i) {
-            Difference z{clamp(right - i, 0Z, outFirst[i - left - 1])};
-            while (i + z < length && first[z] == first[i + z])
-                ++z;
-            outFirst[i - 1] = z;
-            if (z > 0 && pred(next(first, i), next(first, i + z)))
+            const auto border{right - i}, bound{length - i};
+            Difference k{0};
+            if (border > 0)
+                k = min(border, outFirst[i - left - 1]);
+            // if (border <= 0 || border == outFirst[i - left - 1])
+            while (k < bound && inFirst[k] == inFirst[i + k])
+                ++k;
+            outFirst[i - 1] = k;
+            if (k > 0 && pred(next(inFirst, i), next(inFirst, i + k)))
                 break;
-            if (i + z > right) {
+            if (k > border) {
                 left = i;
-                right = i + z;
+                right = i + k;
             }
         }
     }
@@ -34,11 +38,10 @@ public:
         string str{};
         str.reserve(strSize);
         auto iter{back_inserter(str)};
-        copy(cbegin(needle), cend(needle), iter);
-        str.push_back('\0');
+        copy_n(data(needle), size(needle) + 1, iter);
         copy(cbegin(haystack), cend(haystack), iter);
         vector<ptrdiff_t> z(strSize - 1);
-        ptrdiff_t result{-1};
+        auto result{-1Z};
 
         zFunction(cbegin(str), cend(str), begin(z),
             [needleSize, haystackFirst{cbegin(str) + needleSize + 1}, &result](
@@ -138,57 +141,6 @@ private:
         const Iter2 first2, const Iter2 last2
     ) noexcept {
         return {ConcatIter{first1}, ConcatIter{last2}};
-    }
-
-    // TODO: make `outFirst` one element smaller
-    template<class InIter, class OutIter>
-    static constexpr void zFunction(
-        const InIter first,
-        const InIter last,
-        const OutIter outFirst
-    ) noexcept {
-        using Difference = iterator_traits<InIter>::difference_type;
-
-        const auto length{distance(first, last)};
-        *outFirst = length;
-
-        for (Difference i{1}, left{0}, right{0}; i < length; ++i) {
-            Difference z{0};
-            if (i < right)
-                z = min(right - i, outFirst[i - left]);
-
-            while (i + z < length && first[z] == first[i + z])
-                ++z;
-            outFirst[i] = z;
-
-            if (i + z > right) {
-                left = i;
-                right = i + z;
-            }
-        }
-    }
-
-public:
-    constexpr int strStr(
-        const string &haystack,
-        const string &needle
-    ) const noexcept {
-        const auto needleSize{size(needle)},
-            strSize{needleSize + 1 + size(haystack)};
-        string str{};
-        str.reserve(strSize);
-        auto iter{back_inserter(str)};
-        copy(cbegin(needle), cend(needle), iter);
-        str.push_back('\0');
-        copy(cbegin(haystack), cend(haystack), iter);
-        vector<ptrdiff_t> z(strSize);
-        zFunction(cbegin(str), cend(str), begin(z));
-
-        for (auto i{needleSize + 1}; i < strSize; ++i)
-            if (z[i] >= needleSize)
-                return int(i - needleSize - 1);
-
-        return -1;
     }
 };
 */

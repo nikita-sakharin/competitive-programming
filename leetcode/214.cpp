@@ -1,10 +1,10 @@
 class Solution final {
 private:
-    template<class Iter, class Func>
+    template<class Iter, class Pred>
     static constexpr void findPalindromes(
         const Iter first,
         const Iter last,
-        Func &&func
+        Pred &&pred
     ) noexcept {
         using Difference = iterator_traits<Iter>::difference_type;
 
@@ -15,9 +15,9 @@ private:
         vector<Difference> buffer(length);
         for (const auto isOdd : {false, true}) {
             for (Difference i{!isOdd}, left{0}, right{0}; i < length; ++i) {
-                const auto bound{min(i + isOdd, length - i)}, border{right - i};
+                const auto border{right - i}, bound{min(i + isOdd, length - i)};
                 auto k{border > 0
-                    ? min(buffer[left + border - 1], border)
+                    ? min(border, buffer[left + border - 1])
                     : isOdd
                 };
                 if (k >= border)
@@ -28,8 +28,8 @@ private:
                     left = i + isOdd - k;
                     right = i + k;
                 }
-                if (k > 0)
-                    func(next(first, i + isOdd - k), next(first, i + k));
+                if (k > 0 && pred(next(first, i + isOdd - k), next(first, i + k)))
+                    break;
             }
         }
     }
@@ -42,9 +42,11 @@ public:
             [strFirst, &palindrome](
                 const auto first,
                 const auto last
-            ) constexpr noexcept -> void {
+            ) constexpr noexcept -> bool {
                 if (first == strFirst && distance(first, last) > ssize(palindrome))
                     palindrome = string_view(first, last);
+
+                return false;
             }
         );
 
