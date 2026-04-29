@@ -5,20 +5,7 @@ from sympy import factorint, isprime
 
 
 def primitive_root(n: int, /) -> int:
-    return next(primitive_roots_naive(n))
-
-
-def primitive_roots_naive(n: int, /) -> Iterable[int]:
-    if not isinstance(n, int):
-        raise TypeError(F'type of `{n}` is `{type(n)}`')
-    if n <= 2 or not isprime(n):
-        raise ValueError(F'{n} <= 2 or {n} is not prime')
-
-    phi: int = n - 1
-    factors: dict[int, int] = factorint(phi)
-    for g in range(2, n):
-        if all(pow(g, phi // q, n) != 1 for q in factors):
-            yield g
+    return next(primitive_roots_sorted(n))
 
 
 def primitive_roots(n: int, /) -> Iterable[int]:
@@ -29,14 +16,17 @@ def primitive_roots(n: int, /) -> Iterable[int]:
             yield pow(g, k, n)
 
 
-def to_bijective(number: int) -> bytes:
-    result: list[bytes] = []
-    while number:
-        number -= 1
-        result.append(bytes([number & 0XFF]))
-        number >>= 8
-    return B''.join(reversed(result))
+def primitive_roots_sorted(n: int, /) -> Iterable[int]:
+    if not isinstance(n, int):
+        raise TypeError(F'type of `{n}` is `{type(n)}`')
+    if n <= 2 or not isprime(n):
+        raise ValueError(F'{n} <= 2 or {n} is not prime')
 
+    phi: int = n - 1
+    factors: dict[int, int] = factorint(phi)
+    for g in range(2, n):
+        if all(pow(g, phi // q, mod=n) != 1 for q in factors):
+            yield g
 
 assert primitive_root(3) == 2
 assert primitive_root(5) == 2
@@ -71,6 +61,35 @@ assert list(primitive_roots_naive(23)) == [5, 7, 10, 11, 14, 15, 17, 19, 20, 21]
 assert list(primitive_roots_naive(29)) == [2, 3, 8, 10, 11, 14, 15, 18, 19, 21, 26, 27]
 assert list(primitive_roots_naive(31)) == [3, 11, 12, 13, 17, 21, 22, 24]
 
+def from_bijective(binary: bytes) -> int:
+    result: int = 0
+    for b in binary:
+        number = (number << 8) + b + 1
+    return result
+
+def to_bijective(number: int) -> bytes:
+    result: list[bytes] = []
+    while number:
+        number -= 1
+        result.append(bytes([number & 0XFF]))
+        number >>= 8
+    return B''.join(reversed(result))
+
+assert from_bijective(B'') == 0
+assert from_bijective(B'\x00') == 1
+assert from_bijective(B'\x01') == 2
+assert from_bijective(B'\xFF') == 256
+assert from_bijective(B'\x00\x00') == 257
+assert from_bijective(B'\x00\x01') == 258
+assert from_bijective(B'\x00\xFF') == 512
+assert from_bijective(B'\x01\x00') == 513
+assert from_bijective(B'\x01\x01') == 514
+assert from_bijective(B'\x01\xFF') == 768
+assert from_bijective(B'\xFF\x00') == 65535
+assert from_bijective(B'\xFF\x01') == 65536
+assert from_bijective(B'\xFF\xFF') == 65792
+assert from_bijective(B'\x00\x00\x00') == 65793
+
 assert to_bijective(0) == B''
 assert to_bijective(1) == B'\x00'
 assert to_bijective(2) == B'\x01'
@@ -79,6 +98,11 @@ assert to_bijective(257) == B'\x00\x00'
 assert to_bijective(258) == B'\x00\x01'
 assert to_bijective(512) == B'\x00\xFF'
 assert to_bijective(513) == B'\x01\x00'
+assert to_bijective(514) == B'\x01\x01'
+assert to_bijective(768) == B'\x01\xFF'
+assert to_bijective(65535) == B'\xFF\x00'
+assert to_bijective(65536) == B'\xFF\x01'
+assert to_bijective(65792) == B'\xFF\xFF'
 assert to_bijective(65793) == B'\x00\x00\x00'
 
 BASE: int = 257

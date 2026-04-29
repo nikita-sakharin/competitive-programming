@@ -7,10 +7,6 @@ import static java.math.BigInteger.TWO;
 
 // javac -encoding UTF-8 -deprecation -Werror -Xdiags:verbose -Xlint:all Prime.java
 // java -enableassertions Prime
-// p = 2^128 - 15449
-// p = 2^256 - 36113
-// p = 2^512 - 38117
-// p = 2^1024 - 1093337
 public final class Prime {
     private static final int CERTAINTY = 1 << 21;
 
@@ -108,7 +104,7 @@ public final class Prime {
     public static void main(final String[] args) {
         Locale.setDefault(Locale.ROOT);
 
-        for (var exponent : new int[] {128, 256, 512}) {
+        for (var exponent : new int[] {32, 64, 128, 256, 512}) {
             final var powerOfTwo = TWO.pow(exponent);
 
             final var difference =
@@ -145,3 +141,12 @@ public final class Prime {
         }
     }
 }
+/*
+{
+    "32": 209,
+    "64": 1469,
+    "128": 15449,
+    "256": 36113,
+    "512": 38117
+}
+*/
