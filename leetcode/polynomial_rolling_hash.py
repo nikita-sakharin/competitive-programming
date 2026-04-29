@@ -34,22 +34,17 @@ def primitive_roots_sorted(n: int, /) -> Iterator[int]:
 
 
 def from_bijective(binary: bytes, /) -> int:
-    result: int = 0
-    for b in binary:
-        result = (result << 8) + b + 1
-    return result
+    bit_length: int = len(binary) << 3
+    return int.from_bytes(binary) + ((1 << bit_length) - 1) // 0XFF
 
 
 def to_bijective(number: int, /) -> bytes:
     if number < 0:
         raise ValueError(F'{number} < 0')
 
-    result: list[bytes] = []
-    while number:
-        number -= 1
-        result.append(bytes([number & 0XFF]))
-        number >>= 8
-    return B''.join(reversed(result))
+    bit_length: int = ((number * 0XFF + 1).bit_length() - 1) & -8
+    number -= ((1 << bit_length) - 1) // 0XFF
+    return number.to_bytes(bit_length >> 3)
 
 
 class Modulo(namedtuple('Modulo', ['bits', 'offset'])):
