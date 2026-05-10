@@ -41,15 +41,27 @@ def primitive_roots(n: int, /) -> Iterator[int]:
             yield pow(g, k, n)
 
 
-def primitive_roots_sorted(n: int, /) -> Iterator[int]:
-    if not isinstance(n, int):
-        raise TypeError(F'type of `{n}` is `{type(n)}`')
-    if n <= 2 or not isprime(n):
-        raise ValueError(F'{n} <= 2 or {n} is not prime')
+def primitive_roots_sorted(
+    n: int,
+    /,
+    *,
+    start: int = 2,
+    stop: int | None = None
+) -> Iterator[int]:
+    if stop is None:
+        stop = n
+
+    if not all(map(lambda arg: isinstance(arg, int), (n, start, stop))):
+        raise TypeError(', '.join(
+            f'type of `{arg}` is `{type(arg)}`' for arg in (n, start, stop)))
+    if not 2 <= start <= stop <= n or not isprime(n):
+        raise ValueError(
+            f'Inequation `2 <= {start} <= {stop} <= {n}` is not satisfied'
+            f' or `{n}` is not prime')
 
     phi: int = n - 1
     factors: dict[int, int] = factorint(phi)
-    for g in range(2, n):
+    for g in range(start, stop):
         if all(pow(g, phi // q, mod=n) != 1 for q in factors):
             yield g
 
@@ -61,7 +73,7 @@ def from_bijective(binary: bytes, /) -> int:
 
 def to_bijective(number: int, /) -> bytes:
     if number < 0:
-        raise ValueError(F'{number} < 0')
+        raise ValueError(f'{number} < 0')
 
     bit_length: int = ((number * 0XFF + 1).bit_length() - 1) & -8
     number -= ((1 << bit_length) - 1) // 0XFF
