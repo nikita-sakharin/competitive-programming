@@ -6,7 +6,10 @@ from functools import cached_property
 from math import gcd
 from unittest import main, TestCase
 
+from mpmath import (e, euler, fabs, floor, frac, ln, log, phi, pi, power, sqrt,
+    workprec)
 from sympy import factorint, isprime, nextprime, prevprime
+from sympy.ntheory import is_primitive_root
 
 
 def is_safe_prime(n: int, /) -> bool:
@@ -87,14 +90,16 @@ class Modulo(namedtuple('Modulo', ['bits', 'offset'])):
 
     @cached_property
     def modulo(self) -> int:
-        return (1 << self.bits) - self.offset
+        return (1 << self.bits) + self.offset
 
     def __rmod__(self, number: int, /) -> int:
         if number < 0:
             number = self.modulo - (-number % self)
 
         while number.bit_length() > self.bits:
-            number = (number & self.mask) + (number >> self.bits) * self.offset
+            number = (number & self.mask) - (number >> self.bits) * self.offset
+        if number < 0:
+            number += self.modulo
         if number >= self.modulo:
             number -= self.modulo
         return number
@@ -167,19 +172,16 @@ class TestBijective(TestCase):
 
 class TestModulo(TestCase):
     def test_rmod(self):
-        modulo: Modulo = Modulo(bits=64, offset=1469)
-        self.assertEqual((-modulo.modulo - 1) % modulo, modulo.modulo - 1)
-        self.assertEqual(-modulo.modulo % modulo, 0)
-        self.assertEqual((-modulo.modulo + 1) % modulo, 1)
-        self.assertEqual(-1 % modulo, modulo.modulo - 1)
-        self.assertEqual(0 % modulo, 0)
-        self.assertEqual(1 % modulo, 1)
-        self.assertEqual((modulo.modulo - 1) % modulo, modulo.modulo - 1)
-        self.assertEqual(modulo.modulo % modulo, 0)
-        self.assertEqual((modulo.modulo + 1) % modulo, 1)
-        self.assertEqual(((1 << modulo.bits) - 1) % modulo, modulo.offset - 1)
-        self.assertEqual((1 << modulo.bits) % modulo, modulo.offset)
-        self.assertEqual(((1 << modulo.bits) + 1) % modulo, modulo.offset + 1)
+        for modulo in [
+            Modulo(bits=64, offset=-1469), Modulo(bits=64, offset=3103)
+        ]:
+            for point in [
+                -(1 << modulo.bits), -modulo.modulo, 0,
+                modulo.modulo, 1 << modulo.bits
+            ]:
+                for delta in range(-1, 2):
+                    number: int = point + delta
+                    self.assertEqual(number % modulo, number % modulo.modulo)
 
 
 class TestPolynomialHash(TestCase):
@@ -194,32 +196,34 @@ class TestPolynomialHash(TestCase):
         return result & poly_hash.mask
 
     def test_call(self):
-        modulo: Modulo = Modulo(bits=64, offset=1469)
-        poly_hash: PolynomialHash = PolynomialHash(
-            base=257,
-            modulo=modulo,
-            bits=32
-        )
-        for binary in [
-            B'', B'\x00', B'\x01', B'\xFF',
-            B'\x00\x00', B'\x00\x01', B'\x00\xFF',
-            B'\x01\x00', B'\x01\x01', B'\x01\xFF',
-            B'\xFF\x00', B'\xFF\x01', B'\xFF\xFF',
-            B'\x00\x00\x00', B'\x00\x00\x01', B'\x00\x00\xFF',
-            B'\x00\x01\x00', B'\x00\x01\x01', B'\x00\x01\xFF',
-            B'\x00\xFF\x00', B'\x00\xFF\x01', B'\x00\xFF\xFF',
-            B'\x01\x00\x00', B'\x01\x00\x01', B'\x01\x00\xFF',
-            B'\x01\x01\x00', B'\x01\x01\x01', B'\x01\x01\xFF',
-            B'\x01\xFF\x00', B'\x01\xFF\x01', B'\x01\xFF\xFF',
-            B'\xFF\x00\x00', B'\xFF\x00\x01', B'\xFF\x00\xFF',
-            B'\xFF\x01\x00', B'\xFF\x01\x01', B'\xFF\x01\xFF',
-            B'\xFF\xFF\x00', B'\xFF\xFF\x01', B'\xFF\xFF\xFF',
-            B'\x00\x00\x00\x00'
+        for modulo in [
+            Modulo(bits=64, offset=-1469), Modulo(bits=64, offset=3103)
         ]:
-            self.assertEqual(
-                poly_hash(binary),
-                self.polynomial_hash(poly_hash, binary)
+            poly_hash: PolynomialHash = PolynomialHash(
+                base=257,
+                modulo=modulo,
+                bits=32
             )
+            for binary in [
+                B'', B'\x00', B'\x01', B'\xFF',
+                B'\x00\x00', B'\x00\x01', B'\x00\xFF',
+                B'\x01\x00', B'\x01\x01', B'\x01\xFF',
+                B'\xFF\x00', B'\xFF\x01', B'\xFF\xFF',
+                B'\x00\x00\x00', B'\x00\x00\x01', B'\x00\x00\xFF',
+                B'\x00\x01\x00', B'\x00\x01\x01', B'\x00\x01\xFF',
+                B'\x00\xFF\x00', B'\x00\xFF\x01', B'\x00\xFF\xFF',
+                B'\x01\x00\x00', B'\x01\x00\x01', B'\x01\x00\xFF',
+                B'\x01\x01\x00', B'\x01\x01\x01', B'\x01\x01\xFF',
+                B'\x01\xFF\x00', B'\x01\xFF\x01', B'\x01\xFF\xFF',
+                B'\xFF\x00\x00', B'\xFF\x00\x01', B'\xFF\x00\xFF',
+                B'\xFF\x01\x00', B'\xFF\x01\x01', B'\xFF\x01\xFF',
+                B'\xFF\xFF\x00', B'\xFF\xFF\x01', B'\xFF\xFF\xFF',
+                B'\x00\x00\x00\x00'
+            ]:
+                self.assertEqual(
+                    poly_hash(binary),
+                    self.polynomial_hash(poly_hash, binary)
+                )
 
 
 class TestSafePrime(TestCase):
@@ -244,8 +248,52 @@ class TestSafePrime(TestCase):
 if __name__ == "__main__":
     main()
 
+    modulo: Modulo = Modulo(bits=512, offset=-38117)
+    with workprec(modulo.bits << 1):
+        irrationals: list = [
+            frac(1 / pi),
+            frac(1 / sqrt(2)),
+            frac(1 / sqrt(3)),
+            frac(1 / sqrt(pi)),
+            frac(2 / pi),
+            frac(2 / sqrt(pi)),
+            frac(e),
+            frac(euler),
+            frac(ln(2)),
+            frac(ln(10)),
+            frac(log(e, 2)),
+            frac(log(e, 10)),
+            frac(phi),
+            frac(pi),
+            frac(pi / 2),
+            frac(pi / 4),
+            frac(sqrt(2)),
+            frac(sqrt(3)),
+        ]
+        min_exp: int = modulo.bits + min(
+            int(floor(log(irrational, 2)))
+            for irrational in irrationals
+        )
+        bases: list[int] = [
+            int(floor(irrational * (1 << modulo.bits)))
+            for irrational in irrationals
+        ]
+        bases = [
+            base
+            for base in bases
+            if is_primitive_root(base, modulo.modulo) and base & 1
+        ]
+        powers: list = [
+            power(modulo.modulo, exponent / modulo.bits)
+            for exponent in range(min_exp, modulo.bits + 1)
+        ]
+        bases = sorted(
+            bases,
+            key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
+        )
+
     polynomial_hash: PolynomialHash = PolynomialHash(
-        base=257,
-        modulo=Modulo(bits=512, offset=38117),
+        base=bases[-1],
+        modulo=modulo,
         bits=64
     )
