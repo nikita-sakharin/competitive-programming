@@ -4,12 +4,25 @@ from collections import namedtuple
 from collections.abc import Iterator
 from functools import cached_property
 from math import gcd
-from unittest import main, TestCase
+from unittest import TestCase, main
 
-from mpmath import (e, euler, fabs, floor, frac, ln, log, phi, pi, power, sqrt,
-    workprec)
-from sympy import factorint, isprime, nextprime, prevprime
-from sympy.ntheory import is_primitive_root
+from mpmath import (
+    e, euler, fabs, floor, frac, ln, log, phi, pi, power, sqrt, workprec
+)
+from sympy import (
+    factorint, is_primitive_root, isprime, nextprime, prevprime, primitive_root
+)
+
+
+def has_primitive_root(n: int, /) -> bool:
+    if n < 2:
+        raise ValueError(f'{n} < 2')
+
+    factors: dict[int, int] = factorint(n)
+    return (
+        len(factors) == 1 and factors.get(2, 0) < 3
+        or len(factors) == 2 and factors.get(2, 0) == 1
+    )
 
 
 def is_safe_prime(n: int, /) -> bool:
@@ -32,10 +45,6 @@ def prev_safe_prime(n: int, /) -> int:
     return n
 
 
-def primitive_root(n: int, /) -> int:
-    return next(primitive_roots_sorted(n))
-
-
 def primitive_roots(n: int, /) -> Iterator[int]:
     g: int = primitive_root(n)
     phi: int = n - 1
@@ -56,11 +65,14 @@ def primitive_roots_sorted(
 
     if not all(map(lambda arg: isinstance(arg, int), (n, start, stop))):
         raise TypeError(', '.join(
-            f'type of `{arg}` is `{type(arg)}`' for arg in (n, start, stop)))
-    if not 2 <= start <= stop <= n or not isprime(n):
+            f'type of `{arg}` is `{type(arg)}`'
+            for arg in (n, start, stop)
+        ))
+    if not 2 <= start <= stop <= n or not has_primitive_root(n):
         raise ValueError(
             f'Inequation `2 <= {start} <= {stop} <= {n}` is not satisfied'
-            f' or `{n}` is not prime')
+            f' or `{n}` has no primitive roots'
+        )
 
     phi: int = n - 1
     factors: dict[int, int] = factorint(phi)
@@ -138,9 +150,21 @@ class TestPrimitiveRoot(TestCase):
                   54, 39, 38, 34, 18, 13, 52, 31, 6, 24, 37, 30]),
             (61, [2, 6, 35, 18, 44, 54, 10, 30, 59, 55, 26, 43, 17, 7, 51, 31])
         ]:
-            self.assertEqual(primitive_root(n), roots[0])
             self.assertEqual(list(primitive_roots(n)), roots)
             self.assertEqual(list(primitive_roots_sorted(n)), sorted(roots))
+
+    def test_has_primitive_roots(self):
+        has_root: set[int] = {
+            2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14, 17, 18, 19, 22, 23, 25, 26,
+            27, 29, 31, 34, 37, 38, 41, 43, 46, 47, 49, 50, 53, 54, 58, 59, 61,
+            62, 67, 71, 73, 74, 79, 81, 82, 83, 86, 89, 94, 97, 98, 101, 103,
+            106, 107, 109, 113, 118, 121, 122, 125, 127, 131, 134, 137, 139
+        }
+        for n in range(-1, max(has_root) + 1):
+            if n in {-1, 0, 1}:
+                self.assertRaises(ValueError, has_primitive_root, n)
+            else:
+                self.assertEqual(has_primitive_root(n), n in has_root)
 
 
 class TestBijective(TestCase):
