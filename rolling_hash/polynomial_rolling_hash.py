@@ -50,7 +50,7 @@ def primitive_roots(n: int, /) -> Iterator[int]:
     phi: int = n - 1
     for k in range(1, phi):
         if gcd(k, phi) == 1:
-            yield pow(g, k, n)
+            yield pow(g, k, mod=n)
 
 
 def primitive_roots_sorted(
@@ -161,7 +161,7 @@ class TestPrimitiveRoot(TestCase):
             106, 107, 109, 113, 118, 121, 122, 125, 127, 131, 134, 137, 139
         }
         for n in range(-1, max(has_root) + 1):
-            if n in {-1, 0, 1}:
+            if n in {-2, -1, 0, 1}:
                 self.assertRaises(ValueError, has_primitive_root, n)
             else:
                 self.assertEqual(has_primitive_root(n), n in has_root)
@@ -203,7 +203,7 @@ class TestModulo(TestCase):
                 -(1 << modulo.bits), -modulo.modulo, 0,
                 modulo.modulo, 1 << modulo.bits
             ]:
-                for delta in range(-1, 2):
+                for delta in range(-4, 4):
                     number: int = point + delta
                     self.assertEqual(number % modulo, number % modulo.modulo)
 
@@ -294,14 +294,14 @@ if __name__ == "__main__":
             frac(sqrt(2)),
             frac(sqrt(3)),
         ]
+        bases: list[int] = [
+            int(floor(irrational * modulo.modulo))
+            for irrational in irrationals
+        ]
         min_exp: int = modulo.bits + min(
             int(floor(log(irrational, 2)))
             for irrational in irrationals
         )
-        bases: list[int] = [
-            int(floor(irrational * (1 << modulo.bits)))
-            for irrational in irrationals
-        ]
         bases = [
             base
             for base in bases
