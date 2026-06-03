@@ -7,10 +7,11 @@ from math import gcd
 from unittest import TestCase, main
 
 from mpmath import (
-    e, euler, fabs, floor, frac, ln, log, phi, pi, power, sqrt, workprec
+    e, euler, fabs, floor, frac, ln, log, nint, phi, pi, power, sqrt, workprec,
 )
 from sympy import (
-    factorint, is_primitive_root, isprime, nextprime, prevprime, primitive_root
+    factorint, is_primitive_root, isprime, nextprime, prevprime,
+    primitive_root, totient,
 )
 
 
@@ -47,7 +48,7 @@ def prev_safe_prime(n: int, /) -> int:
 
 def primitive_roots(n: int, /) -> Iterator[int]:
     g: int = primitive_root(n)
-    phi: int = n - 1
+    phi: int = int(totient(n))
     for k in range(1, phi):
         if gcd(k, phi) == 1:
             yield pow(g, k, mod=n)
@@ -74,10 +75,10 @@ def primitive_roots_sorted(
             f' or `{n}` has no primitive roots'
         )
 
-    phi: int = n - 1
+    phi: int = int(totient(n))
     factors: dict[int, int] = factorint(phi)
     for g in range(start, stop):
-        if all(pow(g, phi // q, mod=n) != 1 for q in factors):
+        if all(pow(g, phi // p, mod=n) != 1 for p in factors):
             yield g
 
 
@@ -161,7 +162,7 @@ class TestPrimitiveRoot(TestCase):
             106, 107, 109, 113, 118, 121, 122, 125, 127, 131, 134, 137, 139
         }
         for n in range(-1, max(has_root) + 1):
-            if n in {-2, -1, 0, 1}:
+            if n in range(-2, 2):
                 self.assertRaises(ValueError, has_primitive_root, n)
             else:
                 self.assertEqual(has_primitive_root(n), n in has_root)
@@ -295,7 +296,7 @@ if __name__ == "__main__":
             frac(sqrt(3)),
         ]
         bases: list[int] = [
-            int(floor(irrational * modulo.modulo))
+            int(nint(irrational * modulo.modulo))
             for irrational in irrationals
         ]
         min_exp: int = modulo.bits + min(
