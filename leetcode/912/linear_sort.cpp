@@ -78,6 +78,10 @@ private:
         constexpr void reserve(const size_t newCapacity) noexcept {
             count.reserve(newCapacity);
         }
+
+        constexpr void shrink_to_fit() noexcept {
+            count.shrink_to_fit();
+        }
     };
 
     template<class T>
