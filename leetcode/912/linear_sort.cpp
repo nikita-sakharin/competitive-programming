@@ -45,11 +45,12 @@ private:
         ) noexcept {
             using Difference = iterator_traits<InIter>::difference_type;
 
-            const auto cardinality{ordinalizer.cardinality()};
+            const auto cardinality{ordinalizer.cardinality()},
+                length{count.size()};
             count.resize(cardinality);
             const auto countFirst{begin(count)}, countLast{end(count)};
 
-            fill(countFirst, countLast, 0UZ);
+            fill_n(countFirst, min(length, cardinality), 0UZ);
 
             for_each(inFirst, inLast,
                 [this, &ordinalizer](
