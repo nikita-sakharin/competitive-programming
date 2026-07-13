@@ -33,15 +33,11 @@ private:
             index /= denom;
         }
 
-        while (!empty(representation)) {
-            const auto i{representation.top()}, j{size(representation)};
+        for (auto iter{first}; iter != last; ++iter) {
+            const auto middle{next(iter, representation.top())};
             representation.pop();
-
-            const auto iIter{next(first, i)}, jIter{next(iIter, j - i)};
-            rotate(iIter, next(iIter), jIter);
+            rotate(iter, middle, next(middle));
         }
-
-        reverse(first, last);
     }
 
 public:
