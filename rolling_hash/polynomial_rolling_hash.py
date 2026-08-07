@@ -13,6 +13,11 @@ from sympy import is_primitive_root
 from bijective import to_bijective
 from modulus import Modulus
 
+__all__: list[str] = [
+    "PolynomialHash",
+]
+
+
 class PolynomialHash(namedtuple(
     'PolynomialHash',
     ['multiplier', 'increment', 'modulus', 'seed', 'bits'],
@@ -82,7 +87,7 @@ class TestPolynomialHash(TestCase):
 
 
 if __name__ == "__main__":
-    # main()
+    main()
 
     modulus: Modulus = Modulus(bits=256, offset=-36113)
     with workprec(modulus.bits << 1):

@@ -5,6 +5,12 @@ from unittest import TestCase, main
 
 from sympy import factorint, primitive_root, totient
 
+__all__: list[str] = [
+    "has_primitive_root",
+    "primitive_roots",
+    "primitive_roots_sorted",
+]
+
 
 def has_primitive_root(n: int, /) -> bool:
     if n < 2:

@@ -1,6 +1,11 @@
+#!/usr/bin/env python
 from dataclasses import dataclass
 from functools import cached_property
 from unittest import TestCase, main
+
+__all__: list[str] = [
+    "Modulus",
+]
 
 
 @dataclass(frozen=True, slots=False)
