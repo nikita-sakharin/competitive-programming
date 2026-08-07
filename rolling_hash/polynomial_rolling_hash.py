@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from collections import namedtuple
+from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
 from unittest import TestCase, main
@@ -18,10 +18,14 @@ __all__: list[str] = [
 ]
 
 
-class PolynomialHash(namedtuple(
-    "PolynomialHash",
-    ["multiplier", "increment", "modulus", "seed", "bits"],
-)):
+@dataclass(frozen=True, slots=False)
+class PolynomialHash:
+    multiplier: int
+    increment: int
+    modulus: int
+    seed: int
+    bits: int
+
     @cached_property
     def mask(self) -> int:
         return (1 << self.bits) - 1
