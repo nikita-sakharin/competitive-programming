@@ -32,9 +32,9 @@ class PolynomialHash:
 
     def __call__(self, binary: bytes, /) -> int:
         state: int = self.seed
-        for b in chain(binary, (len(binary),)):
+        for byte in chain(binary, (len(binary),)):
             state = (
-                state * self.multiplier + b + self.increment
+                state * self.multiplier + byte + self.increment
             ) % self.modulus
 
         result: int = 0
@@ -52,8 +52,8 @@ class TestPolynomialHash(TestCase):
         modulus: int = poly_hash.modulus.modulus
 
         result: int = poly_hash.seed
-        for b in chain(binary, (len(binary),)):
-            result = (result * multiplier + b + increment) % modulus
+        for byte in chain(binary, (len(binary),)):
+            result = (result * multiplier + byte + increment) % modulus
         return result & poly_hash.mask
 
     def test_call(self):
