@@ -3,17 +3,20 @@ from bisect import bisect_left
 from collections import namedtuple
 from collections.abc import Iterator
 from functools import cached_property
+from itertools import chain
 from math import gcd
 from unittest import TestCase, main
 
 from mpmath import (
-    e, euler, fabs, floor, frac, ln, log, nint, phi, pi, power, sqrt, workprec,
+    e, euler, fabs, floor, frac, ldexp, ln, log, nint, phi, pi, power, sqrt,
+    workprec,
 )
 from sympy import (
     factorint, is_primitive_root, isprime, nextprime, prevprime,
     primitive_root, totient,
 )
 
+from bijective import to_bijective
 
 def has_primitive_root(n: int, /) -> bool:
     if n < 2:
@@ -82,20 +85,6 @@ def primitive_roots_sorted(
             yield g
 
 
-def from_bijective(binary: bytes, /) -> int:
-    bit_length: int = len(binary) << 3
-    return int.from_bytes(binary) + ((1 << bit_length) - 1) // 0XFF
-
-
-def to_bijective(number: int, /) -> bytes:
-    if number < 0:
-        raise ValueError(f'{number} < 0')
-
-    bit_length: int = ((number * 0XFF + 1).bit_length() - 1) & -8
-    number -= ((1 << bit_length) - 1) // 0XFF
-    return number.to_bytes(bit_length >> 3)
-
-
 class Modulo(namedtuple('Modulo', ['bits', 'offset'])):
     @cached_property
     def mask(self) -> int:
@@ -118,16 +107,24 @@ class Modulo(namedtuple('Modulo', ['bits', 'offset'])):
         return number
 
 
-class PolynomialHash(namedtuple('PolynomialHash', ['base', 'modulo', 'bits'])):
+class PolynomialHash(namedtuple(
+    'PolynomialHash',
+    ['multiplier', 'increment', 'modulus', 'seed', 'bits'],
+)):
     @cached_property
     def mask(self) -> int:
         return (1 << self.bits) - 1
 
     def __call__(self, binary: bytes, /) -> int:
+        state: int = self.seed
+        for b in chain(binary, (len(binary),)):
+            state = (state * self.multiplier + b + self.increment) % self.modulus
+
         result: int = 0
-        for b in binary:
-            result = (result * self.base + b + 1) % self.modulo
-        return result & self.mask
+        while state:
+            result ^= state & self.mask
+            state >>= self.bits
+        return result
 
 
 class TestPrimitiveRoot(TestCase):
@@ -168,33 +165,6 @@ class TestPrimitiveRoot(TestCase):
                 self.assertEqual(has_primitive_root(n), n in has_root)
 
 
-class TestBijective(TestCase):
-    def test_bijective(self):
-        for number, binary in [
-            (0, B''), (1, B'\x00'), (2, B'\x01'), (256, B'\xFF'),
-            (257,   B'\x00\x00'), (258,   B'\x00\x01'), (512,   B'\x00\xFF'),
-            (513,   B'\x01\x00'), (514,   B'\x01\x01'), (768,   B'\x01\xFF'),
-            (65537, B'\xFF\x00'), (65538, B'\xFF\x01'), (65792, B'\xFF\xFF'),
-            (65793,    B'\x00\x00\x00'), (65794,    B'\x00\x00\x01'),
-            (66048,    B'\x00\x00\xFF'), (66049,    B'\x00\x01\x00'),
-            (66050,    B'\x00\x01\x01'), (66304,    B'\x00\x01\xFF'),
-            (131073,   B'\x00\xFF\x00'), (131074,   B'\x00\xFF\x01'),
-            (131328,   B'\x00\xFF\xFF'), (131329,   B'\x01\x00\x00'),
-            (131330,   B'\x01\x00\x01'), (131584,   B'\x01\x00\xFF'),
-            (131585,   B'\x01\x01\x00'), (131586,   B'\x01\x01\x01'),
-            (131840,   B'\x01\x01\xFF'), (196609,   B'\x01\xFF\x00'),
-            (196610,   B'\x01\xFF\x01'), (196864,   B'\x01\xFF\xFF'),
-            (16777473, B'\xFF\x00\x00'), (16777474, B'\xFF\x00\x01'),
-            (16777728, B'\xFF\x00\xFF'), (16777729, B'\xFF\x01\x00'),
-            (16777730, B'\xFF\x01\x01'), (16777984, B'\xFF\x01\xFF'),
-            (16842753, B'\xFF\xFF\x00'), (16842754, B'\xFF\xFF\x01'),
-            (16843008, B'\xFF\xFF\xFF'),
-            (16843009, B'\x00\x00\x00\x00')
-        ]:
-            self.assertEqual(from_bijective(binary), number)
-            self.assertEqual(to_bijective(number), binary)
-
-
 class TestModulo(TestCase):
     def test_rmod(self):
         for modulo in [
@@ -212,12 +182,14 @@ class TestModulo(TestCase):
 class TestPolynomialHash(TestCase):
     @staticmethod
     def polynomial_hash(poly_hash: PolynomialHash, binary: bytes) -> int:
-        base: int = poly_hash.base
-        modulo: int = poly_hash.modulo.modulo
+        multiplier: int = poly_hash.multiplier
+        increment: int = poly_hash.increment
+        modulus: int = poly_hash.modulus.modulo
 
-        result: int = 0
+        result: int = poly_hash.seed
         for b in binary:
-            result = (result * base + b + 1) % modulo
+            result = (result * multiplier + b + increment) % modulus
+        result = (result * multiplier + increment) % modulus
         return result & poly_hash.mask
 
     def test_call(self):
@@ -225,8 +197,10 @@ class TestPolynomialHash(TestCase):
             Modulo(bits=64, offset=-1469), Modulo(bits=64, offset=3103)
         ]:
             poly_hash: PolynomialHash = PolynomialHash(
-                base=257,
-                modulo=modulo,
+                multiplier=257,
+                increment=1,
+                modulus=modulo,
+                seed=1,
                 bits=32
             )
             for binary in [
@@ -271,9 +245,9 @@ class TestSafePrime(TestCase):
 
 
 if __name__ == "__main__":
-    main()
+    # main()
 
-    modulo: Modulo = Modulo(bits=512, offset=-38117)
+    modulo: Modulo = Modulo(bits=256, offset=-36113)
     with workprec(modulo.bits << 1):
         irrationals: list = [
             frac(1 / pi),
@@ -295,30 +269,38 @@ if __name__ == "__main__":
             frac(sqrt(2)),
             frac(sqrt(3)),
         ]
-        bases: list[int] = [
-            int(nint(irrational * modulo.modulo))
+        multipliers: list[int] = [
+            int(nint(ldexp(irrational, modulo.bits)))
             for irrational in irrationals
         ]
-        min_exp: int = modulo.bits + min(
-            int(floor(log(irrational, 2)))
-            for irrational in irrationals
-        )
-        bases = [
+        multipliers = [
             base
-            for base in bases
+            for base in multipliers
             if is_primitive_root(base, modulo.modulo) and base & 1
         ]
-        powers: list = [
-            power(modulo.modulo, exponent / modulo.bits)
-            for exponent in range(min_exp, modulo.bits + 1)
-        ]
-        bases = sorted(
-            bases,
-            key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
-        )
+        # min_exp: int = modulo.bits + min(
+        #     int(floor(log(irrational, 2)))
+        #     for irrational in irrationals
+        # )
+        # powers: list = [
+        #     power(modulo.modulo, exponent / modulo.bits)
+        #     for exponent in range(min_exp, modulo.bits + 1)
+        # ]
+        # multipliers = sorted(
+        #     multipliers,
+        #     key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
+        # )
+        multiplier: int = multipliers[2]
+        increment: int = int(nint(ldexp(frac(1 + sqrt(2)), modulo.bits)))
+        seed: int = int(nint(ldexp(frac(1.5 + sqrt(13) / 2), modulo.bits)))
 
     polynomial_hash: PolynomialHash = PolynomialHash(
-        base=bases[-1],
-        modulo=modulo,
-        bits=64
+        multiplier=multiplier,
+        increment=increment,
+        modulus=modulo,
+        seed=seed,
+        bits=64,
     )
+    for i in range(512):
+        h: int = polynomial_hash(to_bijective(i))
+        print(f'{h:064b}')
