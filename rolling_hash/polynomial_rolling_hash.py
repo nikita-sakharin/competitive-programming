@@ -52,9 +52,8 @@ class TestPolynomialHash(TestCase):
         modulus: int = poly_hash.modulus.modulus
 
         result: int = poly_hash.seed
-        for b in binary:
+        for b in chain(binary, (len(binary),)):
             result = (result * multiplier + b + increment) % modulus
-        result = (result * multiplier + increment) % modulus
         return result & poly_hash.mask
 
     def test_call(self):
