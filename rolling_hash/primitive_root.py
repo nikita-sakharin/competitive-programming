@@ -14,7 +14,7 @@ __all__: list[str] = [
 
 def has_primitive_root(n: int, /) -> bool:
     if n < 2:
-        raise ValueError(f'{n} < 2')
+        raise ValueError(f"{n} < 2")
 
     factors: dict[int, int] = factorint(n)
     return (
@@ -42,14 +42,14 @@ def primitive_roots_sorted(
         stop = n
 
     if not all(map(lambda arg: isinstance(arg, int), (n, start, stop))):
-        raise TypeError(', '.join(
-            f'type of `{arg}` is `{type(arg)}`'
+        raise TypeError(", ".join(
+            f"type of `{arg}` is `{type(arg)}`"
             for arg in (n, start, stop)
         ))
     if not 2 <= start <= stop <= n or not has_primitive_root(n):
         raise ValueError(
-            f'Inequation `2 <= {start} <= {stop} <= {n}` is not satisfied'
-            f' or `{n}` has no primitive roots'
+            f"Inequation `2 <= {start} <= {stop} <= {n}` is not satisfied"
+            f" or `{n}` has no primitive roots"
         )
 
     phi: int = int(totient(n))

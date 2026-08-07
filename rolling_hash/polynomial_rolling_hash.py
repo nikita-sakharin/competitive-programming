@@ -19,8 +19,8 @@ __all__: list[str] = [
 
 
 class PolynomialHash(namedtuple(
-    'PolynomialHash',
-    ['multiplier', 'increment', 'modulus', 'seed', 'bits'],
+    "PolynomialHash",
+    ["multiplier", "increment", "modulus", "seed", "bits"],
 )):
     @cached_property
     def mask(self) -> int:
@@ -55,30 +55,30 @@ class TestPolynomialHash(TestCase):
 
     def test_call(self):
         for modulus in [
-            Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103)
+            Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103),
         ]:
             poly_hash: PolynomialHash = PolynomialHash(
                 multiplier=257,
                 increment=1,
                 modulus=modulus,
                 seed=1,
-                bits=32
+                bits=32,
             )
             for binary in [
-                B'', B'\x00', B'\x01', B'\xFF',
-                B'\x00\x00', B'\x00\x01', B'\x00\xFF',
-                B'\x01\x00', B'\x01\x01', B'\x01\xFF',
-                B'\xFF\x00', B'\xFF\x01', B'\xFF\xFF',
-                B'\x00\x00\x00', B'\x00\x00\x01', B'\x00\x00\xFF',
-                B'\x00\x01\x00', B'\x00\x01\x01', B'\x00\x01\xFF',
-                B'\x00\xFF\x00', B'\x00\xFF\x01', B'\x00\xFF\xFF',
-                B'\x01\x00\x00', B'\x01\x00\x01', B'\x01\x00\xFF',
-                B'\x01\x01\x00', B'\x01\x01\x01', B'\x01\x01\xFF',
-                B'\x01\xFF\x00', B'\x01\xFF\x01', B'\x01\xFF\xFF',
-                B'\xFF\x00\x00', B'\xFF\x00\x01', B'\xFF\x00\xFF',
-                B'\xFF\x01\x00', B'\xFF\x01\x01', B'\xFF\x01\xFF',
-                B'\xFF\xFF\x00', B'\xFF\xFF\x01', B'\xFF\xFF\xFF',
-                B'\x00\x00\x00\x00'
+                B"", B"\x00", B"\x01", B"\xFF",
+                B"\x00\x00", B"\x00\x01", B"\x00\xFF",
+                B"\x01\x00", B"\x01\x01", B"\x01\xFF",
+                B"\xFF\x00", B"\xFF\x01", B"\xFF\xFF",
+                B"\x00\x00\x00", B"\x00\x00\x01", B"\x00\x00\xFF",
+                B"\x00\x01\x00", B"\x00\x01\x01", B"\x00\x01\xFF",
+                B"\x00\xFF\x00", B"\x00\xFF\x01", B"\x00\xFF\xFF",
+                B"\x01\x00\x00", B"\x01\x00\x01", B"\x01\x00\xFF",
+                B"\x01\x01\x00", B"\x01\x01\x01", B"\x01\x01\xFF",
+                B"\x01\xFF\x00", B"\x01\xFF\x01", B"\x01\xFF\xFF",
+                B"\xFF\x00\x00", B"\xFF\x00\x01", B"\xFF\x00\xFF",
+                B"\xFF\x01\x00", B"\xFF\x01\x01", B"\xFF\x01\xFF",
+                B"\xFF\xFF\x00", B"\xFF\xFF\x01", B"\xFF\xFF\xFF",
+                B"\x00\x00\x00\x00",
             ]:
                 self.assertEqual(
                     poly_hash(binary),
@@ -145,4 +145,4 @@ if __name__ == "__main__":
     )
     for i in range(512):
         h: int = polynomial_hash(to_bijective(i))
-        print(f'{h:064b}')
+        print(f"{h:064b}")
