@@ -36,7 +36,7 @@ def primitive_roots_sorted(
     /,
     *,
     start: int = 2,
-    stop: int | None = None
+    stop: int | None = None,
 ) -> Iterator[int]:
     if stop is None:
         stop = n
