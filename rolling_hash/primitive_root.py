@@ -55,7 +55,10 @@ def primitive_roots_sorted(
     phi: int = int(totient(n))
     factors: dict[int, int] = factorint(phi)
     for g in range(start, stop):
-        if gcd(g, n) == 1 and all(pow(g, phi // p, mod=n) != 1 for p in factors):
+        if (
+            gcd(g, n) == 1
+            and all(pow(g, phi // p, mod=n) != 1 for p in factors)
+        ):
             yield g
 
 
