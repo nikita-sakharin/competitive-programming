@@ -8,7 +8,7 @@ __all__: list[str] = [
 ]
 
 
-@dataclass(frozen=True, slots=False)
+@dataclass(frozen=True, slots=True)
 class Modulus:
     bits: int
     offset: int
