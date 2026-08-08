@@ -56,13 +56,16 @@ if __name__ == "__main__":
         multiplier: int = int(nint(ldexp(frac(phi), modulus.bits)))
         increment: int = int(nint(ldexp(frac(1 + sqrt(2)), modulus.bits)))
         seed: int = int(nint(ldexp(frac(1.5 + sqrt(13) / 2), modulus.bits)))
-        finalize_multiplier: int = int(nint(ldexp(frac(pi), modulus.bits)))
-        finalize_increment: int = int(nint(ldexp(frac(e), modulus.bits)))
+
+    finalize_modulus: Modulus = Modulus(bits=64, offset=-1469)
+    with workprec(finalize_modulus.bits << 1):
+        finalize_multiplier: int = int(nint(ldexp(frac(pi), finalize_modulus.bits)))
+        finalize_increment: int = int(nint(ldexp(frac(e), finalize_modulus.bits)))
 
     finalizator = Finalizator(
         multiplier=finalize_multiplier,
         increment=finalize_increment,
-        modulus=Modulus(bits=64, offset=-1469),
+        modulus=finalize_modulus,
     )
     polynomial_hash: PolynomialHash = PolynomialHash(
         multiplier=multiplier,
