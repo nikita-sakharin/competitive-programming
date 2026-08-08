@@ -15,7 +15,7 @@ __all__: list[str] = [
 @final
 @dataclass(frozen=True, kw_only=True)
 class PolynomialHash:
-    degree: ClassVar[Final[str]] = 3
+    degree: ClassVar[Final[int]] = 3
 
     multiplier: int
     increment: int
