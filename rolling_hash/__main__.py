@@ -11,6 +11,7 @@ from polynomial_hash import Finalizator, PolynomialHash
 
 if __name__ == "__main__":
     modulus: Modulus = Modulus(bits=256, offset=-36113)
+    finalize_modulus: Modulus = Modulus(bits=64, offset=-1469)
     with workprec(modulus.bits << 1):
         irrationals: list = [
             frac(1 / pi),
@@ -56,9 +57,6 @@ if __name__ == "__main__":
         multiplier: int = int(nint(ldexp(frac(phi), modulus.bits)))
         increment: int = int(nint(ldexp(frac(1 + sqrt(2)), modulus.bits)))
         seed: int = int(nint(ldexp(frac(1.5 + sqrt(13) / 2), modulus.bits)))
-
-    finalize_modulus: Modulus = Modulus(bits=64, offset=-1469)
-    with workprec(finalize_modulus.bits << 1):
         finalize_multiplier: int = int(nint(ldexp(frac(pi), finalize_modulus.bits)))
         finalize_increment: int = int(nint(ldexp(frac(e), finalize_modulus.bits)))
 
