@@ -7,7 +7,7 @@ from sympy import is_primitive_root
 
 from bijective import to_bijective
 from modulus import Modulus
-from polynomial_hash import PolynomialHash
+from polynomial_hash import Finalizator, PolynomialHash
 
 if __name__ == "__main__":
     modulus: Modulus = Modulus(bits=256, offset=-36113)
@@ -41,28 +41,35 @@ if __name__ == "__main__":
             for base in multipliers
             if is_primitive_root(base, modulus.modulus) and base & 1
         ]
-        # min_exp: int = modulus.bits + min(
-        #     int(floor(log(irrational, 2)))
-        #     for irrational in irrationals
-        # )
-        # powers: list = [
-        #     power(modulus.modulus, exponent / modulus.bits)
-        #     for exponent in range(min_exp, modulus.bits + 1)
-        # ]
-        # multipliers = sorted(
-        #     multipliers,
-        #     key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
-        # )
-        multiplier: int = multipliers[2]
+        min_exp: int = modulus.bits + min(
+            int(floor(log(irrational, 2)))
+            for irrational in irrationals
+        )
+        powers: list = [
+            power(modulus.modulus, exponent / modulus.bits)
+            for exponent in range(min_exp, modulus.bits + 1)
+        ]
+        multipliers = sorted(
+            multipliers,
+            key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
+        )
+        multiplier: int = int(nint(ldexp(frac(phi), modulus.bits)))
         increment: int = int(nint(ldexp(frac(1 + sqrt(2)), modulus.bits)))
         seed: int = int(nint(ldexp(frac(1.5 + sqrt(13) / 2), modulus.bits)))
+        finalize_multiplier: int = int(nint(ldexp(frac(pi), modulus.bits)))
+        finalize_increment: int = int(nint(ldexp(frac(e), modulus.bits)))
 
+    finalizator = Finalizator(
+        multiplier=finalize_multiplier,
+        increment=finalize_increment,
+        modulus=Modulus(bits=64, offset=-1469),
+    )
     polynomial_hash: PolynomialHash = PolynomialHash(
         multiplier=multiplier,
         increment=increment,
         modulus=modulus,
         seed=seed,
-        bits=64,
+        finalizator=finalizator,
     )
     for i in range(512):
         h: int = polynomial_hash(to_bijective(i))

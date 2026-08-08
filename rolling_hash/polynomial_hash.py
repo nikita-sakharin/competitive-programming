@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
@@ -8,8 +9,26 @@ from unittest import TestCase, main
 from modulus import Modulus
 
 __all__: list[str] = [
+    "Finalizator",
     "PolynomialHash",
 ]
+
+
+@final
+@dataclass(frozen=True, kw_only=True, slots=True)
+class Finalizator:
+    degree: ClassVar[Final[int]] = 3
+
+    multiplier: int
+    increment: int
+    modulus: int
+
+    @final
+    def __call__(self, state: int, /) -> int:
+        return (
+            pow(state, Finalizator.degree, mod=self.modulus.modulus)
+            * self.multiplier + self.increment
+        ) % self.modulus
 
 
 @final
@@ -21,12 +40,7 @@ class PolynomialHash:
     increment: int
     modulus: int
     seed: int
-    bits: int
-
-    @final
-    @cached_property
-    def mask(self) -> int:
-        return (1 << self.bits) - 1
+    finalizator: Callable[[int], int]
 
     @final
     def __call__(self, binary: bytes, /) -> int:
@@ -37,7 +51,7 @@ class PolynomialHash:
                 * self.multiplier + byte + self.increment
             ) % self.modulus
 
-        return state & self.mask
+        return self.finalizator(state)
 
 
 @final
@@ -55,19 +69,24 @@ class TestPolynomialHash(TestCase):
                 pow(result, poly_hash.degree, mod=modulus)
                 * multiplier + byte + increment
             ) % modulus
-        return result & poly_hash.mask
+        return poly_hash.finalizator(result)
 
     @final
     def test_call(self):
         for modulus in [
             Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103),
         ]:
+            finalizator: Finalizator = Finalizator(
+                multiplier=5,
+                increment=1,
+                modulus=Modulus(bits=32, offset=-209),
+            )
             poly_hash: PolynomialHash = PolynomialHash(
                 multiplier=257,
                 increment=1,
                 modulus=modulus,
                 seed=1,
-                bits=32,
+                finalizator=finalizator,
             )
             for binary in [
                 B"", B"\x00", B"\x01", B"\xFF",
