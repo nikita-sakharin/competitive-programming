@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
+from typing import final
 from unittest import TestCase, main
 
 from modulus import Modulus
@@ -11,7 +12,8 @@ __all__: list[str] = [
 ]
 
 
-@dataclass(frozen=True, slots=True)
+@final
+@dataclass(frozen=True, kw_only=True)
 class PolynomialHash:
     multiplier: int
     increment: int
@@ -19,10 +21,12 @@ class PolynomialHash:
     seed: int
     bits: int
 
+    @final
     @cached_property
     def mask(self) -> int:
         return (1 << self.bits) - 1
 
+    @final
     def __call__(self, binary: bytes, /) -> int:
         state: int = self.seed
         for byte in chain(binary, (len(binary),)):
@@ -30,14 +34,12 @@ class PolynomialHash:
                 state * self.multiplier + byte + self.increment
             ) % self.modulus
 
-        result: int = 0
-        while state:
-            result ^= state & self.mask
-            state >>= self.bits
-        return result
+        return state & self.mask
 
 
+@final
 class TestPolynomialHash(TestCase):
+    @final
     @staticmethod
     def polynomial_hash(poly_hash: PolynomialHash, binary: bytes) -> int:
         multiplier: int = poly_hash.multiplier
@@ -49,6 +51,7 @@ class TestPolynomialHash(TestCase):
             result = (result * multiplier + byte + increment) % modulus
         return result & poly_hash.mask
 
+    @final
     def test_call(self):
         for modulus in [
             Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103),

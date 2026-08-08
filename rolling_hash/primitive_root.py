@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from collections.abc import Iterator
 from math import gcd
+from typing import final
 from unittest import TestCase, main
 
 from sympy import factorint, primitive_root, totient
@@ -12,6 +13,7 @@ __all__: list[str] = [
 ]
 
 
+@final
 def has_primitive_root(n: int, /) -> bool:
     if n < 2:
         raise ValueError(f"{n} < 2")
@@ -23,6 +25,7 @@ def has_primitive_root(n: int, /) -> bool:
     )
 
 
+@final
 def primitive_roots(n: int, /) -> Iterator[int]:
     g: int = primitive_root(n)
     phi: int = int(totient(n))
@@ -31,6 +34,7 @@ def primitive_roots(n: int, /) -> Iterator[int]:
             yield pow(g, k, mod=n)
 
 
+@final
 def primitive_roots_sorted(
     n: int,
     /,
@@ -62,7 +66,9 @@ def primitive_roots_sorted(
             yield g
 
 
+@final
 class TestPrimitiveRoot(TestCase):
+    @final
     def test_primitive_roots(self):
         for n, roots in [
             (3, [2]), (4, [3]), (5, [2, 3]), (6, [5]), (7, [3, 5]),
@@ -98,6 +104,7 @@ class TestPrimitiveRoot(TestCase):
             self.assertEqual(list(primitive_roots(n)), roots)
             self.assertEqual(list(primitive_roots_sorted(n)), sorted(roots))
 
+    @final
     def test_has_primitive_roots(self):
         has_root: set[int] = {
             2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14, 17, 18, 19, 22, 23, 25, 26,

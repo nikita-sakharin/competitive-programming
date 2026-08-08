@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from bisect import bisect_left
+from typing import final
 from unittest import TestCase, main
 
 from sympy import isprime, nextprime, prevprime
@@ -11,10 +12,12 @@ __all__: list[str] = [
 ]
 
 
+@final
 def is_safe_prime(n: int, /) -> bool:
     return isprime(n >> 1) and isprime(n)
 
 
+@final
 def next_safe_prime(n: int, /) -> int:
     while True:
         n = nextprime(n)
@@ -23,6 +26,7 @@ def next_safe_prime(n: int, /) -> int:
     return n
 
 
+@final
 def prev_safe_prime(n: int, /) -> int:
     while True:
         n = prevprime(n)
@@ -31,7 +35,9 @@ def prev_safe_prime(n: int, /) -> int:
     return n
 
 
+@final
 class TestSafePrime(TestCase):
+    @final
     def test_safe_prime(self):
         safe_primes: list[int] = [
             5, 7, 11, 23, 47, 59, 83, 107, 167, 179, 227, 263, 347, 359, 383,

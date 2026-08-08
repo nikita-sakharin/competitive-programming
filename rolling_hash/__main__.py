@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from mpmath import (
     e, euler, fabs, floor, frac, ldexp, ln, log, nint, phi, pi, power, sqrt,
     workprec,

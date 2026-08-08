@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from dataclasses import dataclass
 from functools import cached_property
+from typing import final
 from unittest import TestCase, main
 
 __all__: list[str] = [
@@ -8,19 +9,23 @@ __all__: list[str] = [
 ]
 
 
-@dataclass(frozen=True, slots=True)
+@final
+@dataclass(frozen=True, kw_only=True)
 class Modulus:
     bits: int
     offset: int
 
+    @final
     @cached_property
     def mask(self) -> int:
         return (1 << self.bits) - 1
 
+    @final
     @cached_property
     def modulus(self) -> int:
         return (1 << self.bits) + self.offset
 
+    @final
     def __rmod__(self, number: int, /) -> int:
         if number < 0:
             number = self.modulus - (-number % self)
@@ -34,7 +39,9 @@ class Modulus:
         return number
 
 
+@final
 class TestModulus(TestCase):
+    @final
     def test_rmod(self):
         for modulus in [
             Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103),
