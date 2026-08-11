@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from collections.abc import Callable
 from dataclasses import dataclass
-from functools import cached_property
 from itertools import chain
 from typing import ClassVar, Final, final
 from unittest import TestCase, main
