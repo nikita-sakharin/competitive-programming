@@ -52,7 +52,7 @@ private:
     static constexpr pair<Iter, Iter> nthElement(
         const Iter first1, const Iter last1,
         const Iter first2, const Iter last2,
-        Difference<Iter> n
+        const Difference<Iter> n
     ) noexcept {
         const auto
             length1{distance(first1, last1)}, length2{distance(first2, last2)};
