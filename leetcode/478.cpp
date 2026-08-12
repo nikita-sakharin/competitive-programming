@@ -9,7 +9,7 @@ private:
         return piecewise_linear_distribution(cbegin(i), cend(i), cbegin(w));
     }
 
-    default_random_engine eng{random_device{}()};
+    mt19937_64 eng{random_device{}()};
     const dbl xCenter{0.0}, yCenter{0.0};
     piecewise_linear_distribution<dbl> rDist;
     uniform_real_distribution<dbl> phiDist{0.0, 2.0 * numbers::pi};
