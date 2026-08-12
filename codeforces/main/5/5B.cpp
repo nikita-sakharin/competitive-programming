@@ -55,7 +55,7 @@ int main() {
 
     vector<string> text;
     size_t max_size = 0;
-    while (text.push_back(""), getline(cin, text.back()))
+    while (text.emplace_back(""), getline(cin, text.back()))
         max_size = max(max_size, text.back().size());
     text.pop_back();
 
