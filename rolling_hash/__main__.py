@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from mpmath import (
-    e, euler, fabs, floor, frac, ldexp, ln, log, nint, phi, pi, power, sqrt,
+    e, euler, fabs, floor, frac, ldexp, ln, log, phi, pi, power, sqrt,
     workprec,
 )
 from sympy import is_primitive_root
@@ -11,7 +11,7 @@ from polynomial_hash import Finalizator, PolynomialHash
 
 if __name__ == "__main__":
     modulus: Modulus = Modulus(bits=256, offset=-36113)
-    finalize_modulus: Modulus = Modulus(bits=64, offset=-1469)
+    finalize_modulus: Modulus = Modulus(bits=64, offset=-59)
     with workprec(modulus.bits << 1):
         irrationals: list = [
             frac(1 / pi),
@@ -34,13 +34,13 @@ if __name__ == "__main__":
             frac(sqrt(3)),
         ]
         multipliers: list[int] = [
-            int(nint(ldexp(irrational, modulus.bits)))
+            int(floor(ldexp(irrational, modulus.bits)))
             for irrational in irrationals
         ]
         multipliers = [
             base
             for base in multipliers
-            if is_primitive_root(base, modulus.modulus) and base & 1
+            if is_primitive_root(base, modulus.modulus)
         ]
         min_exp: int = modulus.bits + min(
             int(floor(log(irrational, 2)))
@@ -54,11 +54,11 @@ if __name__ == "__main__":
             multipliers,
             key=lambda b: min(powers, key=lambda p: fabs(b / p - 1))
         )
-        multiplier: int = int(nint(ldexp(frac(phi), modulus.bits)))
-        increment: int = int(nint(ldexp(frac(1 + sqrt(2)), modulus.bits)))
-        seed: int = int(nint(ldexp(frac(1.5 + sqrt(13) / 2), modulus.bits)))
-        finalize_multiplier: int = int(nint(ldexp(frac(pi), finalize_modulus.bits)))
-        finalize_increment: int = int(nint(ldexp(frac(e), finalize_modulus.bits)))
+        multiplier: int = int(floor(ldexp(frac(phi), modulus.bits)))
+        increment: int = int(floor(ldexp(frac(1 + sqrt(2)), modulus.bits)))
+        seed: int = int(floor(ldexp(frac(1.5 + sqrt(13) / 2), modulus.bits)))
+        finalize_multiplier: int = int(floor(ldexp(frac(e), finalize_modulus.bits)))
+        finalize_increment: int = int(floor(ldexp(frac(pi), finalize_modulus.bits)))
 
     finalizator = Finalizator(
         multiplier=finalize_multiplier,

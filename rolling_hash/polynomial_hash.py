@@ -20,7 +20,7 @@ class Finalizator:
 
     multiplier: int
     increment: int
-    modulus: int
+    modulus: Modulus
 
     @final
     def __call__(self, state: int, /) -> int:
@@ -31,13 +31,13 @@ class Finalizator:
 
 
 @final
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class PolynomialHash:
     degree: ClassVar[Final[int]] = 3
 
     multiplier: int
     increment: int
-    modulus: int
+    modulus: Modulus
     seed: int
     finalizator: Callable[[int], int]
 
