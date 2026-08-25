@@ -8,14 +8,14 @@ from unittest import TestCase, main
 from modulus import Modulus
 
 __all__: list[str] = [
-    "Finalizator",
+    "Finalizer",
     "PolynomialHash",
 ]
 
 
 @final
 @dataclass(frozen=True, kw_only=True, slots=True)
-class Finalizator:
+class Finalizer:
     degree: ClassVar[Final[int]] = 3
 
     multiplier: int
@@ -25,9 +25,20 @@ class Finalizator:
     @final
     def __call__(self, state: int, /) -> int:
         return (
-            pow(state, Finalizator.degree, mod=self.modulus.modulus)
+            pow(state, Finalizer.degree, mod=self.modulus.modulus)
             * self.multiplier + self.increment
         ) % self.modulus
+    """
+    @final
+    def __call__(self, state: int, /) -> int:
+        remainder: int = state % self.modulus
+        result: int = (
+            pow(remainder, Finalizer.degree, mod=self.modulus.modulus)
+            * self.multiplier + self.increment
+        ) % self.modulus
+        div, mod = divmod(result << modulus.bits, self.modulus.modulus)
+        return div + (mod < remainder)
+    """
 
 
 @final
@@ -39,7 +50,7 @@ class PolynomialHash:
     increment: int
     modulus: Modulus
     seed: int
-    finalizator: Callable[[int], int]
+    finalizer: Callable[[int], int]
 
     @final
     def __call__(self, binary: bytes, /) -> int:
@@ -50,7 +61,7 @@ class PolynomialHash:
                 * self.multiplier + byte + self.increment
             ) % self.modulus
 
-        return self.finalizator(state)
+        return self.finalizer(state)
 
 
 @final
@@ -68,14 +79,14 @@ class TestPolynomialHash(TestCase):
                 pow(result, poly_hash.degree, mod=modulus)
                 * multiplier + byte + increment
             ) % modulus
-        return poly_hash.finalizator(result)
+        return poly_hash.finalizer(result)
 
     @final
     def test_call(self):
         for modulus in [
             Modulus(bits=64, offset=-1469), Modulus(bits=64, offset=3103),
         ]:
-            finalizator: Finalizator = Finalizator(
+            finalizer: Finalizer = Finalizer(
                 multiplier=5,
                 increment=1,
                 modulus=Modulus(bits=32, offset=-209),
@@ -85,7 +96,7 @@ class TestPolynomialHash(TestCase):
                 increment=1,
                 modulus=modulus,
                 seed=1,
-                finalizator=finalizator,
+                finalizer=finalizer,
             )
             for binary in [
                 B"", B"\x00", B"\x01", B"\xFF",
