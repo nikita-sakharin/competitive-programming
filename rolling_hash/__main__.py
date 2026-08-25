@@ -7,7 +7,7 @@ from sympy import is_primitive_root
 
 from bijective import to_bijective
 from modulus import Modulus
-from polynomial_hash import Finalizator, PolynomialHash
+from polynomial_hash import Finalizer, PolynomialHash
 
 if __name__ == "__main__":
     modulus: Modulus = Modulus(bits=256, offset=-36113)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         finalize_multiplier: int = int(floor(ldexp(frac(e), finalize_modulus.bits)))
         finalize_increment: int = int(floor(ldexp(frac(pi), finalize_modulus.bits)))
 
-    finalizator = Finalizator(
+    finalizer = Finalizer(
         multiplier=finalize_multiplier,
         increment=finalize_increment,
         modulus=finalize_modulus,
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         increment=increment,
         modulus=modulus,
         seed=seed,
-        finalizator=finalizator,
+        finalizer=finalizer,
     )
     for i in range(512):
         h: int = polynomial_hash(to_bijective(i))
