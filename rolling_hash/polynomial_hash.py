@@ -37,7 +37,7 @@ class Finalizer:
             * self.multiplier + self.increment
         ) % self.modulus
         div, mod = divmod(result << modulus.bits, self.modulus.modulus)
-        return div + (mod < remainder)
+        return div + (mod > remainder)
     """
 
 
