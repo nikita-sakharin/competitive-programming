@@ -36,7 +36,7 @@ class Finalizer:
             pow(remainder, Finalizer.degree, mod=self.modulus.modulus)
             * self.multiplier + self.increment
         ) % self.modulus
-        div, mod = divmod(result << modulus.bits, self.modulus.modulus)
+        div, mod = divmod(result << self.modulus.bits, self.modulus.modulus)
         return div + (mod > remainder)
     """
 
