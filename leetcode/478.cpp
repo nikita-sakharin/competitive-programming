@@ -5,7 +5,7 @@ private:
     static inline piecewise_linear_distribution<dbl> radiusDistribution(
         const dbl radius
     ) noexcept {
-        const auto i = {0.0, radius}, w = {0.0, 2 / radius};
+        const auto i = {0.0, radius}, w = {0.0, 2.0 / radius};
         return piecewise_linear_distribution(cbegin(i), cend(i), cbegin(w));
     }
 
