@@ -1,24 +1,26 @@
-class Solution final {
-private:
-    template<class T>
-    static constexpr auto isSigned{numeric_limits<T>::is_signed};
+namespace {
+    template<integral T>
+    constexpr auto
+        width{numeric_limits<T>::is_signed + numeric_limits<T>::digits};
 
-    template<class T>
-    static constexpr auto width{isSigned<T> + numeric_limits<T>::digits};
-
-    template<class T>
-    static constexpr T ceilDiv(const T x, const T y) noexcept {
-        return x / y + (isSameSign(x, y) && x % y != T{0});
-    }
-
-    template<class T>
-    static constexpr bool isOdd(const T value) noexcept {
-        return bool(value & T{1});
-    }
-
-    template<class T>
-    static constexpr T isSameSign(const T x, const T y) noexcept {
+    template<signed_integral T>
+    constexpr T isSameSign(const T x, const T y) noexcept {
         return (x ^ y) >= T{0};
+    }
+
+    template<integral T>
+    constexpr T ceilDiv(const T x, const T y) noexcept {
+        if constexpr (signed_integral<T>) {
+            const auto [quot, rem]{div(x, y)};
+            return quot + (isSameSign(x, y) && rem != T{0});
+        }
+
+        return x / y + (x % y != T{0});
+    }
+
+    template<integral T>
+    constexpr bool isOdd(const T value) noexcept {
+        return bool(value & T{1});
     }
 
     enum class RadixSortResult : bool {
@@ -26,27 +28,79 @@ private:
         IN_OUTPUT = true
     };
 
-    template<class Allocator = allocator<size_t>>
+    class CanonicalRadixStrategy final {
+    private:
+        const size_t maxStepM{12};
+
+    public:
+        constexpr CanonicalRadixStrategy() noexcept = default;
+
+        constexpr explicit CanonicalRadixStrategy(const size_t maxStep) noexcept
+            : maxStepM{maxStep} {}
+
+        constexpr size_t operator()(
+            const integral auto length,
+            const size_t bits
+        ) const noexcept {
+            if (length <= 1) [[unlikely]]
+                return min(2UZ, bits);
+
+            const auto ilog2{bit_width(length) - 1};
+            if (bits <= ilog2)
+                return bits;
+
+            const auto step{min(maxStepM, ilog2)};
+            return ceilDiv(bits, ceilDiv(bits, step));
+        }
+    };
+
+    class DefaultRadixStrategy final {
+    private:
+        const size_t maxStepM{12};
+
+    public:
+        constexpr DefaultRadixStrategy() noexcept = default;
+
+        constexpr explicit DefaultRadixStrategy(const size_t maxStep) noexcept
+            : maxStepM{maxStep} {}
+
+        constexpr size_t operator()(
+            const integral auto,
+            const size_t bits
+        ) const noexcept {
+            return ceilDiv(bits, ceilDiv(bits, maxStepM));
+        }
+    };
+
+    template<unsigned_integral Size = size_t, class Allocator = allocator<Size>>
     class CountingSorter final {
     private:
-        vector<size_t, Allocator> count{};
+        vector<Size, Allocator> count{};
 
     public:
         constexpr size_t capacity() const noexcept {
             return count.capacity();
         }
 
-        template<class InIter, class OutIter, class Ordinalizer>
+        template<
+            bidirectional_iterator InIter,
+            random_access_iterator OutIter,
+            class Ordinalizer
+        >
         constexpr void operator()(
             const InIter inFirst,
             const InIter inLast,
             const OutIter outFirst,
             const Ordinalizer &ordinalizer
         ) noexcept {
+            using ranges::next;
             using Difference = iterator_traits<InIter>::difference_type;
 
+            if (next(inFirst, 1, inLast) == inLast) [[unlikely]]
+                return;
+
             const auto cardinality{ordinalizer.cardinality()},
-                length{count.size()};
+                length{size(count)};
             count.resize(cardinality);
             const auto countFirst{begin(count)}, countLast{end(count)};
 
@@ -76,8 +130,8 @@ private:
             );
         }
 
-        constexpr void reserve(const size_t newCapacity) noexcept {
-            count.reserve(newCapacity);
+        constexpr void reserve(const size_t capacity) noexcept {
+            count.reserve(capacity);
         }
 
         constexpr void shrink_to_fit() noexcept {
@@ -85,7 +139,7 @@ private:
         }
     };
 
-    template<class T>
+    template<integral T>
     class IntegralDigitizer final {
     private:
         size_t bitsM{width<T>};
@@ -95,9 +149,8 @@ private:
 
         constexpr IntegralDigitizer() noexcept = default;
 
-        constexpr explicit IntegralDigitizer(
-            const size_t bits
-        ) noexcept : bitsM{bits} {}
+        constexpr explicit IntegralDigitizer(const size_t bits) noexcept
+            : bitsM{bits} {}
 
         constexpr size_t operator()(
             const ValueType value,
@@ -107,7 +160,7 @@ private:
             const auto result{
                 size_t(value >> idx & ((ValueType{1} << step) - ValueType{1}))
             };
-            if constexpr (isSigned<ValueType>)
+            if constexpr (signed_integral<ValueType>)
                 if (idx + step >= bitsM)
                     return result ^ size_t(ValueType{1} << (step - 1));
 
@@ -144,24 +197,28 @@ private:
     };
 
     template<
-        class InIter,
-        class OutIter,
+        random_access_iterator InIter,
+        random_access_iterator OutIter,
         class Digitizer,
+        class RadixStrategy = DefaultRadixStrategy,
         class Sorter = CountingSorter<>
     >
     static constexpr RadixSortResult radixSort(
         const InIter inFirst,
         const InIter inLast,
         const OutIter outFirst,
-        const size_t maxStep,
         const Digitizer &digitizer,
+        const RadixStrategy &strategy = DefaultRadixStrategy{},
         Sorter &&sorter = Sorter{}
     ) noexcept {
         using enum RadixSortResult;
 
         const auto length{distance(inFirst, inLast)};
+        if (length <= 1) [[unlikely]]
+            return IN_INPUT;
+
         const auto outLast{next(outFirst, length)};
-        const auto bits{digitizer.bits()};
+        const auto bits{digitizer.bits()}, maxStep{strategy(length, bits)};
 
         auto idx{0UZ};
         while (idx < bits) {
@@ -178,7 +235,9 @@ private:
 
         return RadixSortResult{isOdd(ceilDiv(bits, maxStep))};
     }
+}
 
+class Solution final {
 public:
     constexpr vector<int> sortArray(vector<int> &nums) const noexcept {
         using enum RadixSortResult;
@@ -188,7 +247,6 @@ public:
             begin(nums),
             end(nums),
             begin(buffer),
-            9,
             IntegralDigitizer<int>{17}
         )};
         if (result == IN_OUTPUT)
