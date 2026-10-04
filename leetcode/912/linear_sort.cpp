@@ -3,6 +3,11 @@ namespace {
     constexpr auto
         width{numeric_limits<T>::is_signed + numeric_limits<T>::digits};
 
+    template<integral T>
+    constexpr bool isOdd(const T value) noexcept {
+        return bool(value & T{1});
+    }
+
     template<signed_integral T>
     constexpr T isSameSign(const T x, const T y) noexcept {
         return (x ^ y) >= T{0};
@@ -16,11 +21,6 @@ namespace {
         }
 
         return x / y + (x % y != T{0});
-    }
-
-    template<integral T>
-    constexpr bool isOdd(const T value) noexcept {
-        return bool(value & T{1});
     }
 
     enum class RadixSortResult : bool {
@@ -45,11 +45,8 @@ namespace {
             if (length <= 1) [[unlikely]]
                 return min(2UZ, bits);
 
-            const auto ilog2{bit_width(length) - 1};
-            if (bits <= ilog2)
-                return bits;
-
-            const auto step{min(maxStepM, ilog2)};
+            const auto ilog2{size_t(bit_width(length) - 1)},
+                step{min(maxStepM, min(bits, ilog2))};
             return ceilDiv(bits, ceilDiv(bits, step));
         }
     };
@@ -203,7 +200,7 @@ namespace {
         class RadixStrategy = DefaultRadixStrategy,
         class Sorter = CountingSorter<>
     >
-    static constexpr RadixSortResult radixSort(
+    constexpr RadixSortResult radixSort(
         const InIter inFirst,
         const InIter inLast,
         const OutIter outFirst,
