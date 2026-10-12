@@ -24,13 +24,6 @@ class Finalizer:
 
     @final
     def __call__(self, state: int, /) -> int:
-        return (
-            pow(state, Finalizer.degree, mod=self.modulus.modulus)
-            * self.multiplier + self.increment
-        ) % self.modulus
-    """
-    @final
-    def __call__(self, state: int, /) -> int:
         remainder: int = state % self.modulus
         result: int = (
             pow(remainder, Finalizer.degree, mod=self.modulus.modulus)
@@ -38,7 +31,6 @@ class Finalizer:
         ) % self.modulus
         div, mod = divmod(result << self.modulus.bits, self.modulus.modulus)
         return div + (mod > remainder)
-    """
 
 
 @final
