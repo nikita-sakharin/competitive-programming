@@ -14,7 +14,7 @@ def from_gray_code(binary: bytes, /) -> int:
 def to_gray_code(number: int, /) -> bytes:
     if number < 0:
         raise ValueError(f"{number} < 0")
-    
+
     length: int = max(1, number.bit_length())
     return (number ^ number >> 1).to_bytes(-(-length >> 3))
 
