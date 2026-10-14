@@ -8,7 +8,15 @@ __all__: list[str] = [
 
 
 def from_gray_code(binary: bytes, /) -> int:
-    pass
+    if not binary:
+        raise ValueError(f"{binary} is empty") # TODO
+
+    number = int.from_bytes(binary)
+    mask: int = number
+    while mask:
+        mask >>= 1
+        number ^= mask
+    return number
 
 
 def to_gray_code(number: int, /) -> bytes:
@@ -35,7 +43,7 @@ class TestBijective(TestCase):
             (4096, B"\x18\x00"), (8192, B"\x30\x00"), (16384, B"\x60\x00"),
             (32768, B"\xC0\x00"),
         ]:
-            # self.assertEqual(from_gray_code(binary), number)
+            self.assertEqual(from_gray_code(binary), number)
             self.assertEqual(to_gray_code(number), binary)
 
 
