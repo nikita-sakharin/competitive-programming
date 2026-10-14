@@ -70,5 +70,7 @@ Problems:
 # Launch
 
 ```bash
-clear && deactivate; rm -frd .venv && python -m venv .venv && source .venv/Scripts/activate && pip install -r requirements.txt
+clear && deactivate 2> /dev/null; rm -frd .venv && python -m venv .venv && source .venv/Scripts/activate && pip install -r requirements.txt
 ```
+
+При финализации возведение в куб происходит в поле internal state, не в финальном поле. Это важно, так как поле internal state по безопасному простому, а finalizer поле по обычному простому числу.
