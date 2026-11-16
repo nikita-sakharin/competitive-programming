@@ -9,9 +9,9 @@ __all__: list[str] = [
 
 def from_gray_code(binary: bytes, /) -> int:
     if not binary:
-        raise ValueError(f"{binary} is empty") # TODO
+        raise ValueError(f"{binary} is empty")
 
-    number = int.from_bytes(binary)
+    number: int = int.from_bytes(binary)
     mask: int = number
     while mask:
         mask >>= 1
@@ -19,12 +19,16 @@ def from_gray_code(binary: bytes, /) -> int:
     return number
 
 
-def to_gray_code(number: int, /) -> bytes:
+def to_gray_code(number: int, /, *, min_width: int = 1) -> bytes:
     if number < 0:
         raise ValueError(f"{number} < 0")
 
-    length: int = max(1, number.bit_length())
-    return (number ^ number >> 1).to_bytes(-(-length >> 3))
+    if min_width < 1:
+        raise ValueError(f"{min_width} < 1")
+
+    length: int = max(min_width << 3, number.bit_length())
+    number ^= number >> 1
+    return number.to_bytes(-(-length >> 3))
 
 
 class TestBijective(TestCase):
