@@ -41,7 +41,7 @@ def poly_hash(binary: bytes) -> int:
 Incrementing the rightmost `byte` of the `binary` just increments the hash value (if no overflow occurs).
 
 ## Length-appended
-2) Same as **Bijective**, but length of the input (`binary`) is appended. The `chain` function in the code is `itertools.chain`:
+Length of the input (`binary`) is appended (the `chain` function in the code is `itertools.chain`):
 
 ```python
 def poly_hash(binary: bytes) -> int:
@@ -55,7 +55,7 @@ def poly_hash(binary: bytes) -> int:
 
 For short inputs with small byte values, the state may remain below `MODULUS`, making modular reduction ineffective and leaving high-order bits unused. In particular, the empty input always hashes to `1`, regardless of `BASE`.
 
-## **Linear Congruential Generator**
+## Linear Congruential Generator
 3) **LCG**-style - `0` is replaced with `SEED` and `1` is replaced with `INCREMENT`:
 
 ```python
@@ -71,7 +71,8 @@ def poly_hash(binary: bytes) -> int:
 - **LCG** does not pass the **NIST Statistical Test Suite** due to its linearity.
 - The 64-bit hash must depend on every bit of the internal state; simply taking the least significant 64 bits ignores the rest. Finalization must mix all state bits into the 64-bit result.
 
-4) Finalizator:
+## Finalization
+
 ```python
 @final
 @dataclass(frozen=True, kw_only=True, slots=True)
