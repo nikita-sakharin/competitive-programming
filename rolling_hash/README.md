@@ -2,15 +2,16 @@
 This is a learning project. The goal is to build the **SIMPLEST**, algebra-based hash algorithm that exhibits perfect statistical properties.
 
 # Definitions
-- `BITS` is a power of two, at least `128`, and specifies the width (in bits) of the internal state of the **Polynomial Hash** function.
+- `BITS` is a power of two, at least `128`, and specifies the width (in bits) of the internal state of the **polynomial hash** function.
 - `MODULUS` is the largest **safe prime** less than `2^BITS`.
 - `BASE` is uniformly sampled from the primitive roots modulo `MODULUS`, except the least one.
 - `INCREMENT` and `SEED` are independently and uniformly sampled integers from (half-open) interval `[1, MODULUS)`.
 
 # Algorithm
-Let us go step by step:
+Let us go step by step.
 
-0) Classic polynomial hash used in the **Rabin–Karp algorithm**:
+## Classic
+The classic **polynomial hash** used in the **Rabin–Karp algorithm**:
 
 ```python
 def poly_hash(binary: bytes) -> int:
@@ -20,9 +21,12 @@ def poly_hash(binary: bytes) -> int:
     return result
 ```
 
-**Problem**: `hash('') == hash('\0') == hash('\0' * 2) == hash('\0' * 3) == hash('\0' * 3) == ...`
+**Problem**:
 
-1) **Bijective** numeration (like column numeration in **Excel**):
+`hash(b'') == hash(b'\0') == hash(b'\0' * 2) == hash(b'\0' * 3) == hash(b'\0' * 4) == ...`
+
+## Bijective
+**Bijective** numeration (like column numeration in **Microsoft Excel**):
 
 ```python
 def poly_hash(binary: bytes) -> int:
@@ -32,9 +36,12 @@ def poly_hash(binary: bytes) -> int:
     return result
 ```
 
-**Problem**: Incrementing the rightmost byte of the `binary` just increments the hash value (if no overflow occurs).
+**Problem**:
 
-2) Same as **Bijective**, but length of the input is appended. The `chain` function in the code is `itertools.chain`.
+Incrementing the rightmost `byte` of the `binary` just increments the hash value (if no overflow occurs).
+
+## Length-appended
+2) Same as **Bijective**, but length of the input (`binary`) is appended. The `chain` function in the code is `itertools.chain`:
 
 ```python
 def poly_hash(binary: bytes) -> int:
@@ -44,9 +51,12 @@ def poly_hash(binary: bytes) -> int:
     return result
 ```
 
-**Problem**: For short inputs with small byte values, the state may remain below `MODULUS`, making modular reduction ineffective and leaving high-order bits unused. In particular, the empty input always hashes to `1`, regardless of `BASE`.
+**Problem**:
 
-3) **LCG**-style (**Linear Congruential Generator**):
+For short inputs with small byte values, the state may remain below `MODULUS`, making modular reduction ineffective and leaving high-order bits unused. In particular, the empty input always hashes to `1`, regardless of `BASE`.
+
+## **Linear Congruential Generator**
+3) **LCG**-style - `0` is replaced with `SEED` and `1` is replaced with `INCREMENT`:
 
 ```python
 def poly_hash(binary: bytes) -> int:
