@@ -23,7 +23,9 @@ def poly_hash(binary: bytes) -> int:
 
 **Problem**:
 
-`hash(b'') == hash(b'\0') == hash(b'\0' * 2) == hash(b'\0' * 3) == hash(b'\0' * 4) == ...`
+Two null-byte strings of different length (including empty) collide to the same `0` hash.
+
+`poly_hash(b'') == poly_hash(b'\0') == poly_hash(b'\0' * 2) == poly_hash(b'\0' * 3) == poly_hash(b'\0' * 4) == 0`
 
 ## Bijective
 **Bijective** numeration (like column numeration in **Microsoft Excel**):
@@ -39,6 +41,8 @@ def poly_hash(binary: bytes) -> int:
 **Problem**:
 
 Incrementing the rightmost `byte` of the `binary` just increments the hash value (if no overflow occurs).
+
+For almost all `BASE`s the equality `poly_hash('a') + 1 == poly_hash('b')` holds.
 
 ## Length-appended
 Length of the input (`binary`) is appended (the `chain` function in the code is `itertools.chain`):
