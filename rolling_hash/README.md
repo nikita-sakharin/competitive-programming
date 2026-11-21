@@ -42,7 +42,9 @@ def poly_hash(binary: bytes) -> int:
 
 Incrementing the rightmost `byte` of the `binary` just increments the hash value (if no overflow occurs).
 
-For almost all `BASE`s the equality `poly_hash('a') + 1 == poly_hash('b')` holds.
+For almost all `BASE`s the equality holds:
+
+`poly_hash(b'A') + 2 == poly_hash(b'B') + 1 == poly_hash(b'C')`
 
 ## Length-appended
 Length of the input (`binary`) is appended (the `chain` function in the code is `itertools.chain`):
@@ -57,7 +59,9 @@ def poly_hash(binary: bytes) -> int:
 
 **Problem**:
 
-For short inputs with small byte values, the state may remain below `MODULUS`, making modular reduction ineffective and leaving high-order bits unused. In particular, the empty input always hashes to `1`, regardless of `BASE`.
+For short inputs with small byte values, the state may remain below `MODULUS`, making modular reduction ineffective and leaving high-order bits unused. In particular, the empty input always hashes to `1`, regardless of `BASE`:
+- `poly_hash(b'') == 1`
+- `poly_hash(b'\0') == BASE + 2`
 
 ## Linear Congruential Generator
 3) **LCG**-style - `0` is replaced with `SEED` and `1` is replaced with `INCREMENT`:
